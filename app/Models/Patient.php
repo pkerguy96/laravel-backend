@@ -20,6 +20,9 @@ class Patient extends Model
         'phone_number',
         'mutuelle',
         'note',
+        'allergy',
+        'disease',
+        'referral'
     ];
     public function appointments()
     {
@@ -28,6 +31,10 @@ class Patient extends Model
     public function Ordonance()
     {
         return $this->hasMany(Ordonance::class, 'patient_id');
+    }
+    public function Xray()
+    {
+        return $this->hasMany(Xray::class, 'patient_id');
     }
     protected static function boot()
     {

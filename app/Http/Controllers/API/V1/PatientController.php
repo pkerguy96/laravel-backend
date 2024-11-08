@@ -10,6 +10,7 @@ use App\Http\Resources\PatientCollection;
 use App\Http\Requests\StorePatientRequest;
 use App\Http\Resources\PatientResource;
 use App\Http\Resources\PatientDetailResource;
+use Illuminate\Support\Facades\Log;
 
 class PatientController extends Controller
 {
@@ -51,17 +52,17 @@ class PatientController extends Controller
             $requestData = $request->validated();
             $data = new PatientResource(Patient::create($requestData));
 
-            // If the patient is successfully created, return a success response
+
             return response()->json([
                 'message' => 'Patient created successfully',
                 'data' => $data
-            ], 201); // 201 Created status code for successful resource creation
+            ], 201);
         } catch (\Exception $e) {
-            // If there's an error while creating the patient, return an error response
+
             return response()->json([
                 'message' => 'Failed to create patient',
                 'error' => $e->getMessage(),
-            ], 500); // 500 Internal Server Error status code for server-side errors
+            ], 500);
         }
     }
 
@@ -76,7 +77,7 @@ class PatientController extends Controller
     public function testpatientstore(Request $request)
     {
         $patients = implode(', ', $request->input('patient_alergy'));
-        
+
 
         dd($patients);
     }
@@ -111,7 +112,7 @@ class PatientController extends Controller
 
         // Validate the updated data
         $validatedData = $request->validated();
-
+        Log::Info($validatedData);
         // Update patient details
         $patient->update($validatedData);
 

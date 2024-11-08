@@ -12,7 +12,7 @@ class PatientResource extends JsonResource
      *
      * @return array<string, mixed>
      */
-      public function toArray($request)
+    public function toArray($request)
     {
         return [
             'id' => $this->id,
@@ -25,8 +25,11 @@ class PatientResource extends JsonResource
             'phoneNumber' => $this->phone_number,
             'mutuelle' => $this->mutuelle,
             'note' => $this->note,
+            'allergy' => $this->allergy ? explode(',', $this->allergy) : [],
+            'disease' => $this->disease ? explode(',', $this->disease) : [],
+            'referral' => $this->referral ? explode(',', $this->referral) : [],
             'appointments' => CustomAppointmentResource::collection($this->appointments),
-            'ordonances' => OrdonanceResource::collection($this->Ordonance)
+            'ordonances' => OrdonanceResource::collection($this->Ordonance),
         ];
     }
 }

@@ -35,12 +35,18 @@ class StorePatientRequest extends FormRequest
             'sex' => ['required', Rule::in(['male', 'female'])],
             'phone_number' => ['required', 'numeric', 'digits_between:8,12'],
             'mutuelle' => ['required'],
+            'allergy' => ['nullable', 'string'],
+            'disease' => ['nullable', 'string'],
+            'referral' => ['nullable', 'string'],
         ];
     }
     public function prepareForValidation()
     {
         $this->merge([
-            'phone_number' => $this->phoneNumber
+            'phone_number' => $this->phoneNumber,
+            'allergy' => isset($this->allergy) ? implode(',', $this->allergy) : null,
+            'disease' => isset($this->disease) ? implode(',', $this->disease) : null,
+            'referral' => isset($this->referral) ? implode(',', $this->referral) : null,
         ]);
     }
     public function messages()
