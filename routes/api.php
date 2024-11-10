@@ -8,9 +8,11 @@ use App\Http\Controllers\API\V1\AppointmentController;
 use App\Http\Controllers\API\V1\NurseController;
 use App\Http\Controllers\API\V1\fileuploadController;
 use App\Http\Controllers\API\V1\OperationController;
+use App\Http\Controllers\API\V1\OrdonanceController;
 use App\Http\Controllers\API\V1\StockController;
 use App\Http\Controllers\API\V1\WaitingRoomController;
 use App\Http\Controllers\API\V1\XrayController;
+use App\Models\Ordonance;
 
 /*
 |--------------------------------------------------------------------------
@@ -56,4 +58,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     route::apiResource('xray', XrayController::class);
     /* operation */
     route::apiResource('Operation', OperationController::class);
+    Route::get('getByOperationId/{id}', [OperationController::class, 'getByOperationId']);
+    /* ordonance */
+    route::apiResource('Ordonance', OrdonanceController::class);
 });

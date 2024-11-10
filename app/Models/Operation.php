@@ -7,17 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class Operation extends Model
 {
-    protected $guarded=[];
+    protected $guarded = [];
     use HasFactory;
-      public function patient()
+    public function patient()
     {
         return $this->belongsTo(Patient::class, 'patient_id');
     }
     public function operationdetails()
     {
-        return $this->hasMany(operationdetails::class, 'operation_id');
+        return $this->hasMany(operation_detail::class, 'operation_id');
     }
-     public function payments()
+    public function payments()
     {
         return $this->hasMany(payement::class, 'operation_id');
     }

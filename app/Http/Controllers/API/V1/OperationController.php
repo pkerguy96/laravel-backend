@@ -9,6 +9,7 @@ use App\Models\operation_detail;
 use App\Models\payement;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Http\Resources\OperationResource;
 
 class OperationController extends Controller
 {
@@ -78,7 +79,15 @@ class OperationController extends Controller
             ], 404);
         }
     }
+    public function getByOperationId($operationId)
+    {
 
+        $operation = Operation::with(['operationdetails'])->where('id', $operationId)->first();
+
+        logger($operation->operationdetails->pluck('preference'));
+        // Transform the result using the resource
+        return new OperationResource($operation);
+    }
     /**
      * Display the specified resource.
      */

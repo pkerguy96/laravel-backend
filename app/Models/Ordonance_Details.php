@@ -8,6 +8,9 @@ use App\Models\Ordonance;
 
 class Ordonance_Details extends Model
 {
+    protected $table = 'ordonance_details';
+
+    protected $guarded = [];
     use HasFactory;
     public function Ordonance()
     {
