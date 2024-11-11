@@ -4,9 +4,16 @@ namespace App\Http\Controllers\API\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreXrayRequest;
+use App\Http\Resources\OperationXrayCollection;
+use App\Http\Resources\XrayResource;
+use App\Models\Patient;
 use App\Models\Xray;
+use App\Models\Xraypreference;
 use App\Traits\HttpResponses;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
+use App\Models\Operation;
 
 class XrayController extends Controller
 {
@@ -25,14 +32,78 @@ class XrayController extends Controller
     public function store(StoreXrayRequest $request)
     {
         try {
+            // Validate request data
             $validatedData = $request->validated();
-            Xray::create($validatedData);
-            return $this->success(null, 'xray stored', 201);
+
+            // Explode xray_type to handle multiple xray types
+            $xrayTypes = explode(',', $validatedData['xray_type']);
+
+            $totalPrice = 0;
+
+            foreach ($xrayTypes as $type) {
+                // Find Xraypreference for each type
+                $xrayPreference = Xraypreference::where('xray_type', $type)->first();
+
+                if ($xrayPreference) {
+                    // Add price to total
+                    $totalPrice += $xrayPreference->price;
+                } else {
+                    return $this->error(null, "Type de radiographie '{$type}' non trouvé dans les préférences", 404);
+                }
+            }
+
+            // Create the operation record first with total cost
+            $operation = Operation::create([
+                'patient_id' => $validatedData['patient_id'],
+                'total_cost' => $totalPrice,
+                'is_paid' => false,
+                'note' => $validatedData['note'] ?? null,
+            ]);
+            foreach ($xrayTypes as $type) {
+                $xrayPreference = Xraypreference::where('xray_type', $type)->first();
+                $xrayData = [
+                    'patient_id' => $validatedData['patient_id'],
+                    'operation_id' => $operation->id,
+                    'xray_type' => $type,
+                    'view_type' => $validatedData['view_type'] ?? null,
+                    'body_side' => $validatedData['body_side'] ?? null,
+                    'type' => $validatedData['type'] ?? 'xray',
+                    'note' => $validatedData['note'] ?? null,
+                    'price' => $xrayPreference->price,
+                    'xray_preference_id' => $xrayPreference->id,
+                ];
+
+                Xray::create($xrayData);
+            }
+
+            return $this->success(null, 'Radiographies enregistrées avec succès', 201);
         } catch (\Throwable $th) {
-            return $this->error($th, 'oopsy', 500);
+            \Log::error('Error storing x-ray data: ' . $th->getMessage());
+
+            return $this->error($th->getMessage(), 'Une erreur s\'est produite lors de l\'enregistrement des radiographies', 500);
         }
     }
 
+
+
+    public function showpatientxrays(string $id)
+    {
+
+        try {
+            if (!Patient::where('id', $id)->exists()) {
+                return $this->error(null, 'patient dosnt exist', 500);
+            }
+            $xray = Xray::where('patient_id', $id)
+                ->whereDate('created_at', Carbon::today())
+                ->get();
+            if (!$xray) {
+                return $this->error(null, 'no xray', 500);
+            }
+            return new OperationXrayCollection($xray);
+        } catch (\Throwable $th) {
+            return $this->error($th, 'something went wrong', 500);
+        }
+    }
     /**
      * Display the specified resource.
      */

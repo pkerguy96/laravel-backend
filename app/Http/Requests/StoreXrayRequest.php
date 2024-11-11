@@ -23,10 +23,13 @@ class StoreXrayRequest extends FormRequest
     {
         return [
             'patient_id' => 'required|exists:patients,id',
+            'operation_id' => 'nullable|exists:operations,id',
             'xray_type' => 'required|string|max:255',
             'view_type' => 'required|string|max:255',
             'body_side' => 'nullable|string|max:255',
+            'type' => 'nullable|string|max:255',
             'note' => 'nullable|string',
+            'price' => 'nullable|numeric|min:0',
         ];
     }
     public function prepareForValidation()
@@ -43,12 +46,16 @@ class StoreXrayRequest extends FormRequest
         return [
             'patient_id.required' => 'L\'identifiant du patient est requis.',
             'patient_id.exists' => 'Le patient spécifié n\'existe pas.',
+            'operation_id.exists' => 'L\'opération spécifiée n\'existe pas.',
             'xray_type.required' => 'Le type de radiographie est requis.',
             'xray_type.string' => 'Le type de radiographie doit être une chaîne de caractères.',
             'view_type.required' => 'Le type de vue est requis.',
             'view_type.string' => 'Le type de vue doit être une chaîne de caractères.',
             'body_side.string' => 'Le côté du corps doit être une chaîne de caractères.',
+            'type.string' => 'Le type doit être une chaîne de caractères.',
             'note.string' => 'La note doit être une chaîne de caractères.',
+            'price.numeric' => 'Le prix doit être un nombre.',
+            'price.min' => 'Le prix ne peut pas être négatif.',
         ];
     }
 }

@@ -56,9 +56,11 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     route::apiResource('Stock', StockController::class);
     /* xray */
     route::apiResource('xray', XrayController::class);
+    Route::get('showpatientxrays/{id}', [XrayController::class, 'showpatientxrays']);
     /* operation */
     route::apiResource('Operation', OperationController::class);
     Route::get('getByOperationId/{id}', [OperationController::class, 'getByOperationId']);
+
     /* ordonance */
     route::apiResource('Ordonance', OrdonanceController::class);
 });

@@ -14,12 +14,12 @@ return new class extends Migration
         Schema::create('operation_details', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('operation_id');
-            $table->string('bone_id');
-            $table->string('operation_type');
+            $table->string('operation_name')->nullable();
             $table->decimal('price', 10, 2);
+            $table->string('type')->nullable();
             $table->timestamps();
             $table->foreign('operation_id')->references('id')->on('operations')->onDelete('cascade');
-            $table->foreign('operation_type')->references('operation_type')->on('operation_preferences')->onDelete('cascade');
+            /*    $table->foreign('operation_type')->references('operation_type')->on('operation_preferences')->onDelete('cascade'); */
         });
     }
 

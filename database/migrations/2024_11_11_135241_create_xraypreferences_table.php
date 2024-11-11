@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('xrays', function (Blueprint $table) {
-            $table->decimal('price', 8, 2)->nullable()->after('body_side');
+        Schema::create('xraypreferences', function (Blueprint $table) {
+            $table->id();
+            $table->string('xray_type')->unique();
+
+            $table->decimal('price', 8, 2)->nullable();
+            $table->timestamps();
         });
     }
 
@@ -21,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('xrays', function (Blueprint $table) {
-            $table->dropColumn('price');
-        });
+        Schema::dropIfExists('xraypreferences');
     }
 };

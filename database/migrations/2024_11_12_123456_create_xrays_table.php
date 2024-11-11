@@ -14,12 +14,18 @@ return new class extends Migration
         Schema::create('xrays', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('patient_id');
+            $table->unsignedBigInteger('operation_id')->nullable();
+            $table->unsignedBigInteger('xray_preference_id')->nullable();
             $table->string('xray_type')->nullable();
             $table->string('view_type')->nullable();
             $table->string('body_side')->nullable();
+            $table->string('type')->default('xray');
             $table->text('note')->nullable();
+            $table->decimal('price', 8, 2)->nullable();
             $table->timestamps();
             $table->foreign('patient_id')->references('id')->on('patients')->onDelete('cascade');
+            $table->foreign('operation_id')->references('id')->on('Operation')->onDelete('cascade');
+            $table->foreign('xray_preference_id')->references('id')->on('Xraypreference')->onDelete('cascade');
         });
     }
 

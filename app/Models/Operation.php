@@ -21,4 +21,8 @@ class Operation extends Model
     {
         return $this->hasMany(payement::class, 'operation_id');
     }
+    public function xray()
+    {
+        return $this->hasMany(Xray::class, 'operation_id');
+    }
 }
