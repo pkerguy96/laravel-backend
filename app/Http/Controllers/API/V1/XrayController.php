@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use App\Models\Operation;
+use App\Models\operation_detail;
 
 class XrayController extends Controller
 {
@@ -78,7 +79,7 @@ class XrayController extends Controller
 
             return $this->success(null, 'Radiographies enregistrées avec succès', 201);
         } catch (\Throwable $th) {
-            \Log::error('Error storing x-ray data: ' . $th->getMessage());
+            Log::error('Error storing x-ray data: ' . $th->getMessage());
 
             return $this->error($th->getMessage(), 'Une erreur s\'est produite lors de l\'enregistrement des radiographies', 500);
         }
@@ -117,7 +118,53 @@ class XrayController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+
+        try {
+            // Step 1: Parse incoming x-ray data from rows
+            $incomingXrays = collect($request->input('rows')); // assume all items are x-rays
+            Log::info('Request data', ['data' => $request->all()]);
+
+            if ($incomingXrays->isEmpty()) {
+                return response()->json(['message' => 'No x-ray data found in the request.'], 400);
+            }
+            // Step 2: Fetch existing x-rays for this operation
+            $existingXrays = Xray::where('operation_id', $id)->get();
+            Log::info('Request data', ['XRAYS' => $id]);
+            if ($existingXrays->isEmpty()) {
+                return response()->json(['message' => 'No x-rays found for this operation ID in the database.'], 404);
+            }
+            // Step 3: Identify deleted, new, and updated x-rays
+            $incomingXrayIds = $incomingXrays->pluck('id')->filter(); // get IDs of incoming x-rays, filter out nulls for new items
+            $deletedXrays = $existingXrays->whereNotIn('id', $incomingXrayIds); // x-rays to be deleted
+            $newXrays = $incomingXrays->filter(fn($xray) => !isset($xray['id'])); // new x-rays to be added
+            $updatedXrays = $incomingXrays->filter(fn($xray) => isset($xray['id'])); // x-rays to be updated
+
+            Xray::destroy($deletedXrays->pluck('id')->toArray());
+            Log::info('Deleted X-rays', ['ids' => $deletedXrays->pluck('id')->toArray()]);
+
+            // Step 5: Log updated x-rays
+            foreach ($updatedXrays as $xray) {
+                Xray::where('id', $xray['id'])->update([
+                    'price' => $xray['price'],
+                    'xray_type' => $xray['xray_type'],
+                ]);
+                Log::info('Updated X-ray', ['id' => $xray['id'], 'data' => $xray]);
+            }
+            // Step 6: Log new x-rays creation
+            foreach ($newXrays as $xray) {
+                operation_detail::create([
+                    'operation_id' => $id,
+                    'operation_name' => $xray['xray_type'],
+                    'price' => $xray['price'],
+                ]);
+                Log::info('Created new X-ray', ['data' => $xray]);
+            }
+
+            return response()->json(['message' => 'Operation updated successfully.']);
+        } catch (\Throwable $th) {
+            Log::error('Error updating operation', ['error' => $th->getMessage()]);
+            return response()->json(['message' => $th->getMessage()], 500);
+        }
     }
 
     /**

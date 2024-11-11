@@ -10,6 +10,7 @@ use App\Models\payement;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Resources\OperationResource;
+use App\Models\Xray;
 
 class OperationController extends Controller
 {
@@ -99,10 +100,7 @@ class OperationController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+    public function update(Request $request, string $id) {}
 
     /**
      * Remove the specified resource from storage.
