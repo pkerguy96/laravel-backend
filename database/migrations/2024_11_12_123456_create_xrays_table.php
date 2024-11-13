@@ -24,8 +24,8 @@ return new class extends Migration
             $table->decimal('price', 8, 2)->nullable();
             $table->timestamps();
             $table->foreign('patient_id')->references('id')->on('patients')->onDelete('cascade');
-            $table->foreign('operation_id')->references('id')->on('Operation')->onDelete('cascade');
-            $table->foreign('xray_preference_id')->references('id')->on('Xraypreference')->onDelete('cascade');
+            $table->foreign('operation_id')->references('id')->on('operations')->onDelete('cascade');
+            $table->foreign('xray_preference_id')->references('id')->on('xraypreferences')->onDelete('cascade');
         });
     }
 

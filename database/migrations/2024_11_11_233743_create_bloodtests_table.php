@@ -11,15 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('operation_details', function (Blueprint $table) {
+        Schema::create('bloodtests', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('operation_id');
-            $table->string('operation_name')->nullable();
-            $table->decimal('price', 10, 2);
-            $table->string('type')->nullable();
+            $table->unsignedBigInteger('operation_id')->nullable();
+            $table->unsignedBigInteger('patient_id');
+            $table->string('blood_test')->nullable();
             $table->timestamps();
             $table->foreign('operation_id')->references('id')->on('operations')->onDelete('cascade');
-            /*    $table->foreign('operation_type')->references('operation_type')->on('operation_preferences')->onDelete('cascade'); */
+            $table->foreign('patient_id')->references('id')->on('patients')->onDelete('cascade');
         });
     }
 
@@ -28,7 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('operation_details');
+        Schema::dropIfExists('bloodtests');
     }
 };
-/* TESSTS */

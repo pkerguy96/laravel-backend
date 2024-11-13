@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\API\V1;
 
+use App\Events\OperationCreated;
+use App\Events\OperationTestEvent;
+use App\Events\TestBroadcastEvent;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreXrayRequest;
 use App\Http\Resources\OperationXrayCollection;
@@ -15,6 +18,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use App\Models\Operation;
 use App\Models\operation_detail;
+use App\Events\MyEvent;
+
 
 class XrayController extends Controller
 {
@@ -77,7 +82,7 @@ class XrayController extends Controller
                 Xray::create($xrayData);
             }
 
-            return $this->success(null, 'Radiographies enregistrées avec succès', 201);
+            return $this->success($operation->id, 'Radiographies enregistrées avec succès', 201);
         } catch (\Throwable $th) {
             Log::error('Error storing x-ray data: ' . $th->getMessage());
 
@@ -94,8 +99,8 @@ class XrayController extends Controller
             if (!Patient::where('id', $id)->exists()) {
                 return $this->error(null, 'patient dosnt exist', 500);
             }
-            $xray = Xray::where('patient_id', $id)
-                ->whereDate('created_at', Carbon::today())
+            $xray = Xray::where('id', $id)
+
                 ->get();
             if (!$xray) {
                 return $this->error(null, 'no xray', 500);
@@ -120,6 +125,11 @@ class XrayController extends Controller
     {
 
         try {
+
+
+
+
+
             // Step 1: Parse incoming x-ray data from rows
             $incomingXrays = collect($request->input('rows')); // assume all items are x-rays
             Log::info('Request data', ['data' => $request->all()]);
@@ -166,7 +176,38 @@ class XrayController extends Controller
             return response()->json(['message' => $th->getMessage()], 500);
         }
     }
+    public function insertWihtoutxray(Request $request)
+    {
+        log::info($request->input('patient_id'));
 
+        $operation = Operation::create([
+            'patient_id' => $request->input('patient_id'),
+            'total_cost' => 0,
+            'is_paid' => 0,
+            'note' => null,
+        ]);
+
+        $id = $operation->id;
+
+        // Add incoming x-rays to the new operation
+        $incomingXrays = collect($request->input('rows'));
+        foreach ($incomingXrays as $xray) {
+            operation_detail::create([
+                'operation_id' => $id,
+                'operation_name' => $xray['xray_type'],
+                'price' => $xray['price'],
+            ]);
+            Log::info('Created new X-ray', ['data' => $xray]);
+        }
+
+        // Controller method
+        /*  event(new TestBroadcastEvent('Hello from backend!')); */
+        Log::info('Dispatching OperationTestEvent');
+        event(new MyEvent('hello world'));
+
+
+        return response()->json(['message' => 'Operation created and details added successfully.'], 201);
+    }
     /**
      * Remove the specified resource from storage.
      */

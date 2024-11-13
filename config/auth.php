@@ -40,8 +40,12 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
-           'sanctum' => [
+        'sanctum' => [
             'driver' => 'sanctum',
+            'provider' => 'users',
+        ],
+        'api' => [ // Add 'api' guard
+            'driver' => 'sanctum', // Use sanctum for API token authentication
             'provider' => 'users',
         ],
     ],

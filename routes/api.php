@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\V1\AuthController;
 use App\Http\Controllers\API\V1\PatientController;
 use App\Http\Controllers\API\V1\AppointmentController;
+use App\Http\Controllers\API\V1\BloodTestController;
 use App\Http\Controllers\API\V1\NurseController;
 use App\Http\Controllers\API\V1\fileuploadController;
 use App\Http\Controllers\API\V1\OperationController;
@@ -63,4 +64,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
 
     /* ordonance */
     route::apiResource('Ordonance', OrdonanceController::class);
+    /* bloodtest */
+    route::apiResource('bloodtest', BloodTestController::class);
+    Route::post('insertWihtoutxray', [XrayController::class, 'insertWihtoutxray']);
 });
