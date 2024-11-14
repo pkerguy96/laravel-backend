@@ -33,7 +33,7 @@ class OperationCreated implements ShouldBroadcast
     public function broadcastOn()
     {
         Log::info('Broadcasting on nurse-notifications channel.');
-        return new Channel('nurse-notifications'); // Use public Channel for testing
+        return new PrivateChannel('nurse-notifications'); // Use public Channel for testing
     }
     public function broadcastAs()
     {
