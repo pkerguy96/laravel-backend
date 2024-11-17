@@ -36,6 +36,10 @@ class Patient extends Model
     {
         return $this->hasMany(Xray::class, 'patient_id');
     }
+    public function Payments()
+    {
+        return $this->hasMany(Payment::class, 'patient_id');
+    }
     protected static function boot()
     {
         parent::boot();

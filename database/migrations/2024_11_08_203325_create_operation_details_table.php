@@ -19,6 +19,8 @@ return new class extends Migration
             $table->string('type')->nullable();
             $table->timestamps();
             $table->foreign('operation_id')->references('id')->on('operations')->onDelete('cascade');
+
+
             /*    $table->foreign('operation_type')->references('operation_type')->on('operation_preferences')->onDelete('cascade'); */
         });
     }

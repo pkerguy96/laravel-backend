@@ -8,6 +8,7 @@ use App\Http\Controllers\API\V1\AppointmentController;
 use App\Http\Controllers\API\V1\BloodTestController;
 use App\Http\Controllers\API\V1\NurseController;
 use App\Http\Controllers\API\V1\fileuploadController;
+use App\Http\Controllers\API\V1\FinancialController;
 use App\Http\Controllers\API\V1\OperationController;
 use App\Http\Controllers\API\V1\OrdonanceController;
 use App\Http\Controllers\API\V1\StockController;
@@ -61,10 +62,15 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     /* operation */
     route::apiResource('Operation', OperationController::class);
     Route::get('getByOperationId/{id}', [OperationController::class, 'getByOperationId']);
+    Route::get('recurringOperation', [OperationController::class, 'recurringOperation']);
 
     /* ordonance */
     route::apiResource('Ordonance', OrdonanceController::class);
     /* bloodtest */
     route::apiResource('bloodtest', BloodTestController::class);
     Route::post('insertWihtoutxray', [XrayController::class, 'insertWihtoutxray']);
+
+
+    /* Payment and related routes */
+    Route::post('PatientsDebt', [FinancialController::class, 'PatientsDebt']);
 });

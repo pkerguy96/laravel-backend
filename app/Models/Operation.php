@@ -19,7 +19,7 @@ class Operation extends Model
     }
     public function payments()
     {
-        return $this->hasMany(payement::class, 'operation_id');
+        return $this->hasMany(Payment::class, 'operation_id');
     }
     public function xray()
     {

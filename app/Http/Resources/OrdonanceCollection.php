@@ -17,14 +17,10 @@ class OrdonanceCollection extends ResourceCollection
         return $this->collection->map(function ($ordonance) {
             return [
                 'id' => $ordonance->id,
-                'doctor_id' => $ordonance->doctor_id,
+
                 'patient_id' => $ordonance->patient_id,
                 'date' => $ordonance->date,
-                'ordonance_details' => OrdonanceDetailsResource::collection($ordonance->whenLoaded('OrdonanceDetails')),
-                'patient' => [
-                    'nom' => $ordonance->patient->nom,
-                    'prenom' => $ordonance->patient->prenom,
-                ],
+                'patient_name' => trim(optional($ordonance->patient)->nom . ' ' . optional($ordonance->patient)->prenom),
             ];
         });
     }

@@ -23,39 +23,22 @@ class StoreXrayRequest extends FormRequest
     {
         return [
             'patient_id' => 'required|exists:patients,id',
-            'operation_id' => 'nullable|exists:operations,id',
-            'xray_type' => 'required|string|max:255',
-            'view_type' => 'required|string|max:255',
-            'body_side' => 'nullable|string|max:255',
+            'xrays' => 'required|array|min:1', // Validate 'xrays' as an array with at least one entry
+
+            'xrays.*.xray_type' => 'required|array|min:1', // Validate xray_type as a required array
+            'xrays.*.view_type' => 'nullable|array', // view_type is optional and can be null
+            'xrays.*.body_side' => 'nullable|array', // body_side is optional and can be null
             'type' => 'nullable|string|max:255',
             'note' => 'nullable|string',
-            'price' => 'nullable|numeric|min:0',
         ];
     }
-    public function prepareForValidation()
-    {
-        $this->merge([
 
-            'xray_type' => isset($this->xray_type) ? implode(',', $this->xray_type) : null,
-            'view_type' => isset($this->view_type) ? implode(',', $this->view_type) : null,
-            'body_side' => isset($this->body_side) ? implode(',', $this->body_side) : null,
-        ]);
-    }
     public function messages(): array
     {
         return [
-            'patient_id.required' => 'L\'identifiant du patient est requis.',
-            'patient_id.exists' => 'Le patient spécifié n\'existe pas.',
-            'operation_id.exists' => 'L\'opération spécifiée n\'existe pas.',
-            'xray_type.required' => 'Le type de radiographie est requis.',
-            'xray_type.string' => 'Le type de radiographie doit être une chaîne de caractères.',
-            'view_type.required' => 'Le type de vue est requis.',
-            'view_type.string' => 'Le type de vue doit être une chaîne de caractères.',
-            'body_side.string' => 'Le côté du corps doit être une chaîne de caractères.',
-            'type.string' => 'Le type doit être une chaîne de caractères.',
-            'note.string' => 'La note doit être une chaîne de caractères.',
-            'price.numeric' => 'Le prix doit être un nombre.',
-            'price.min' => 'Le prix ne peut pas être négatif.',
+            'xrays.required' => 'Au moins une radiographie est requise.',
+            'xrays.array' => 'Les radiographies doivent être un tableau.',
+            'xrays.*.xray_type.required' => 'Le type de radiographie est requis pour chaque entrée.',
         ];
     }
 }

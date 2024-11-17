@@ -8,21 +8,44 @@ use Illuminate\Http\Request;
 use App\Http\Resources\OrdonanceCollection;
 use App\Http\Resources\OrdonanceResource;
 use App\Models\Ordonance_Details;
+use App\Traits\HttpResponses;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class OrdonanceController extends Controller
 {
+    use HttpResponses;
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $searchQuery = $request->input('searchQuery'); // Get the search query from the request
+        $perPage = $request->get('per_page', 20); // Default to 20 items per page if not specified
 
-        $ordonances = Ordonance::with('OrdonanceDetails', 'Patient')->orderBy('id', 'desc')->get();
+        // Base query for Ordonance with related Patient details
+        $ordonancesQuery = Ordonance::select('id', 'patient_id', 'date')
+            ->with([
+                'Patient:id,nom,prenom' // Load only the required Patient fields
+            ])
+            ->orderBy('id', 'desc');
 
+        // Apply search filters if a search query is provided
+        if (!empty($searchQuery)) {
+            $ordonancesQuery->whereHas('Patient', function ($query) use ($searchQuery) {
+                $query->where('nom', 'like', "%{$searchQuery}%")
+                    ->orWhere('prenom', 'like', "%{$searchQuery}%");
+            });
+        }
+
+        // Paginate the results
+        $ordonances = $ordonancesQuery->paginate($perPage);
+
+        // Return the paginated data as a resource collection
         return new OrdonanceCollection($ordonances);
     }
+
+
 
     /**
      * Store a newly created resource in storage.
@@ -145,6 +168,7 @@ class OrdonanceController extends Controller
                 return $this->success(null, 'Ordonance deleted successfuly', 200);
             }
         } catch (\Exception $e) {
+            Log::error('Error deleting ordonance', ['exception' => $e]);
             return $this->success(null, 'oops there is an error:' . $e->getMessage(), 500);
         }
     }
