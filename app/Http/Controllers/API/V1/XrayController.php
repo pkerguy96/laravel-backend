@@ -20,6 +20,7 @@ use App\Models\Operation;
 use App\Models\operation_detail;
 use App\Events\MyEvent;
 use App\Models\Product;
+use App\Models\WaitingRoom;
 
 class XrayController extends Controller
 {
@@ -84,6 +85,20 @@ class XrayController extends Controller
             // Update the operation total cost
             $operation->update(['total_cost' => $totalPrice]);
 
+
+            $waiting =   WaitingRoom::where('patient_id', $request->patient_id)->first();
+            if ($waiting) {
+                $waiting->update([
+                    'status' => 'pending'
+                ]);
+            } else {
+                WaitingRoom::create([
+                    'status' => 'pending',
+                    'patient_id'
+                    => $request->patient_id,
+                    'entry_time' => Carbon::now()
+                ]);
+            }
             return $this->success($operation->id, 'Radiographies enregistrées avec succès', 201);
         } catch (\Throwable $th) {
             Log::error('Error storing x-ray data: ' . $th->getMessage());
@@ -192,6 +207,10 @@ class XrayController extends Controller
                 'treatment_isdone' => $operation->treatment_isdone,
                 'total_cost' => $operation->total_cost,
             ]);
+            $waiting =   WaitingRoom::where('patient_id', $request->patient_id)->first();
+            if ($waiting) {
+                $waiting->delete();
+            }
 
             // Step 9: Handle consumables
             $consomables = collect($request->input('consomables'));
@@ -291,7 +310,10 @@ class XrayController extends Controller
 
         // Save the updated operation after adding all costs
         $operation->save();
-
+        $waiting =   WaitingRoom::where('patient_id', $request->patient_id)->first();
+        if ($waiting) {
+            $waiting->delete();
+        }
         Log::info('Operation created and updated successfully', ['operation' => $operation]);
 
         // Dispatch an event or perform additional actions as needed

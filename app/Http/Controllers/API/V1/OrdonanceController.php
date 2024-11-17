@@ -8,7 +8,9 @@ use Illuminate\Http\Request;
 use App\Http\Resources\OrdonanceCollection;
 use App\Http\Resources\OrdonanceResource;
 use App\Models\Ordonance_Details;
+use App\Models\WaitingRoom;
 use App\Traits\HttpResponses;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -78,6 +80,19 @@ class OrdonanceController extends Controller
 
             // Commit the transaction
             DB::commit();
+            $waiting =   WaitingRoom::where('patient_id', $request->patient_id)->first();
+            if ($waiting) {
+                $waiting->update([
+                    'status' => 'current'
+                ]);
+            } else {
+                WaitingRoom::create([
+                    'status' => 'current',
+                    'patient_id'
+                    => $request->patient_id,
+                    'entry_time' => Carbon::now()
+                ]);
+            }
             $data = new OrdonanceResource(Ordonance::with('OrdonanceDetails')->where('id', $ordonance->id)->first());
             // Return a response with the created Ordonance and OrdonanceDetails
             return response()->json([

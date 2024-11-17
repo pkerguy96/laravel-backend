@@ -40,6 +40,7 @@ class PatientController extends Controller
         return new PatientCollection($patients);
     }
 
+
     /**
      * Store a newly created resource in storage.
      */

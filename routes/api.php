@@ -69,6 +69,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     /* bloodtest */
     route::apiResource('bloodtest', BloodTestController::class);
     Route::post('insertWihtoutxray', [XrayController::class, 'insertWihtoutxray']);
+    Route::get('GetAppointmentPagated', [AppointmentController::class, 'GetAppointmentPagated']);
 
 
     /* Payment and related routes */

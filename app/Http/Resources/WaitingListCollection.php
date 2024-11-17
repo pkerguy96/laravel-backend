@@ -17,9 +17,11 @@ class WaitingListCollection extends ResourceCollection
         return $this->collection->map(function ($waiting) {
             return [
                 'id' => $waiting->id,
+                'patient_id' =>  $waiting->patient->id,
                 'patient_name' =>  $waiting->patient->nom . " " . $waiting->patient->prenom,
                 'entry_time' => $waiting->entry_time,
-
+                'status' =>
+                $waiting->status
             ];
         });
     }

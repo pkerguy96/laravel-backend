@@ -5,7 +5,9 @@ namespace App\Http\Controllers\API\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreBloodTestRequest;
 use App\Models\Bloodtest;
+use App\Models\WaitingRoom;
 use App\Traits\HttpResponses;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class BloodTestController extends Controller
@@ -36,6 +38,19 @@ class BloodTestController extends Controller
                     'operation_id' => $validatedData['operation_id'] ?? null,
                     'patient_id' => $validatedData['patient_id'],
                     'blood_test' => $test,
+                ]);
+            }
+            $waiting =   WaitingRoom::where('patient_id', $request->patient_id)->first();
+            if ($waiting) {
+                $waiting->update([
+                    'status' => 'current'
+                ]);
+            } else {
+                WaitingRoom::create([
+                    'status' => 'current',
+                    'patient_id'
+                    => $request->patient_id,
+                    'entry_time' => Carbon::now()
                 ]);
             }
             return $this->success(null, 'Test sanguin enregistré avec succès', 200);

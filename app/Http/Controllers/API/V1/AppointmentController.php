@@ -23,6 +23,27 @@ class AppointmentController extends Controller
                 ->get()
         );
     }
+    public function GetAppointmentPagated(Request $request)
+    {
+        $searchQuery = $request->input('searchQuery'); // Retrieve search query from request
+        $appointments = Appointment::with('patient') // Include 'patient' relationship
+            ->orderBy('id', 'desc') // Order appointments by descending ID
+            ->paginate($request->get('per_page', 20)); // Paginate with a default of 20 items per page
+
+        if (!empty($searchQuery)) {
+            // Apply search filters if there's a search query
+            $appointments = Appointment::with('patient')
+                ->whereHas('patient', function ($query) use ($searchQuery) {
+                    $query->where('nom', 'like', "%{$searchQuery}%")
+                        ->orWhere('prenom', 'like', "%{$searchQuery}%");
+                    // Add more fields to search in the 'patient' table if needed
+                })
+                ->orderBy('id', 'desc')
+                ->paginate($request->get('per_page', 20));
+        }
+
+        return new AppointmentCollection($appointments);
+    }
 
     /**
      * Show the form for creating a new resource.

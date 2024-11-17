@@ -99,11 +99,55 @@ class WaitingRoomController extends Controller
 
         return new PatientsWaitingRoomCollection($patients); // Return the collection
     }
-    public function GetWaitingList(request $Request)
+    /*   public function GetWaitingList(Request $request)
     {
-        $sex = WaitingRoom::with('patient')->get();
-        return new WaitingListCollection($sex);
+        $searchQuery = $request->input('searchQuery'); // Retrieve search query from request
+
+        $waitingList = WaitingRoom::with('patient') // Include 'patient' relationship
+            ->orderBy('id', 'desc') // Order by descending ID
+            ->paginate($request->get('per_page', 20)); // Default to 20 items per page
+
+        if (!empty($searchQuery)) {
+            // Apply search filters if there's a search query
+            $waitingList = WaitingRoom::with('patient')
+                ->whereHas('patient', function ($query) use ($searchQuery) {
+                    $query->where('nom', 'like', "%{$searchQuery}%")
+                        ->orWhere('prenom', 'like', "%{$searchQuery}%");
+                    // You can add more fields to search in the 'patient' table if needed
+                })
+                ->orderBy('id', 'desc')
+                ->paginate($request->get('per_page', 20));
+        }
+
+        return new WaitingListCollection($waitingList);
+    } */
+
+    public function GetWaitingList(Request $request)
+    {
+        $searchQuery = $request->input('searchQuery'); // Retrieve search query from request
+
+        $waitingListQuery = WaitingRoom::with('patient') // Include 'patient' relationship
+            ->orderByRaw("FIELD(status, 'current', 'pending', 'waiting')") // Custom order for statuses
+            ->orderBy('entry_time', 'desc'); // Then order by entry_time
+
+        if (!empty($searchQuery)) {
+            // Apply search filters if there's a search query
+            $waitingListQuery->whereHas('patient', function ($query) use ($searchQuery) {
+                $query->where('nom', 'like', "%{$searchQuery}%")
+                    ->orWhere('prenom', 'like', "%{$searchQuery}%");
+                // You can add more fields to search in the 'patient' table if needed
+            });
+        }
+
+        // Apply pagination after filtering and ordering
+        $waitingList = $waitingListQuery->paginate($request->get('per_page', 20));
+
+        return new WaitingListCollection($waitingList);
     }
+
+
+
+
     /**
      * Store a newly created resource in storage.
      */
