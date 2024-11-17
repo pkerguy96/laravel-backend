@@ -157,8 +157,7 @@ class OperationController extends Controller
     {
         Log::info($id);
         $operation =  Operation::findorfail($id)->delete();
-        $operation->operationdetails()->delete();
-        $operation->xray()->delete();
+
         return response()->json(['message' => 'Operation deleted successfully'], 204);
     }
 }
