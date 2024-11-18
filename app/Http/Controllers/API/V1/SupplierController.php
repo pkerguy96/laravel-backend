@@ -3,24 +3,52 @@
 namespace App\Http\Controllers\API\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreSupplierRequest;
+use App\Http\Resources\SupplierResource;
+use App\Models\Supplier;
+use App\Traits\HttpResponses;
 use Illuminate\Http\Request;
 
 class SupplierController extends Controller
 {
+    use HttpResponses;
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $searchQuery = $request->input('searchQuery');
+
+        // Default query to paginate suppliers
+        $suppliers = Supplier::orderBy('id', 'desc')->paginate($request->get('per_page', 20));
+
+        if (!empty($searchQuery)) {
+            // Apply search filters if a search query is provided
+            $suppliers = Supplier::where(function ($query) use ($searchQuery) {
+                $query->where('name', 'like', "%{$searchQuery}%")
+                    ->orWhere('address', 'like', "%{$searchQuery}%")
+                    ->orWhere('phone', 'like', "%{$searchQuery}%")
+                    ->orWhere('email', 'like', "%{$searchQuery}%")
+                    ->orWhere('contact_person', 'like', "%{$searchQuery}%")
+                    ->orWhere('company_name', 'like', "%{$searchQuery}%")
+                    ->orWhere('supply_type', 'like', "%{$searchQuery}%");
+                // Add more fields to search if necessary
+            })
+                ->orderBy('id', 'desc')
+                ->paginate($request->get('per_page', 20));
+        }
+
+        return SupplierResource::collection($suppliers);
     }
+
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreSupplierRequest $request)
     {
-        //
+        $supplier = Supplier::create($request->validated());
+        return response()->json(['message' => 'Fournisseur créé avec succès.', 'data' => $supplier], 201);
     }
 
     /**
@@ -28,15 +56,27 @@ class SupplierController extends Controller
      */
     public function show(string $id)
     {
-        //
-    }
+        $supplier = Supplier::find($id);
 
+        if (!$supplier) {
+            return $this->error(null, 'Fournisseur non trouvé.', 404);
+        }
+
+        return new SupplierResource($supplier);
+    }
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(StoreSupplierRequest $request, string $id)
     {
-        //
+        $supplier = Supplier::find($id);
+
+        if (!$supplier) {
+            return response()->json(['message' => 'Fournisseur non trouvé.'], 404);
+        }
+
+        $supplier->update($request->validated());
+        return response()->json(['message' => 'Fournisseur mis à jour avec succès.', 'data' => $supplier], 200);
     }
 
     /**
@@ -44,6 +84,13 @@ class SupplierController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $supplier = Supplier::find($id);
+
+        if (!$supplier) {
+            return response()->json(['message' => 'Fournisseur non trouvé.'], 404);
+        }
+
+        $supplier->delete();
+        return response()->json(['message' => 'Fournisseur supprimé avec succès.'], 200);
     }
 }

@@ -160,4 +160,19 @@ class OperationController extends Controller
 
         return response()->json(['message' => 'Operation deleted successfully'], 204);
     }
+
+    public function deletePaymentDetail($id)
+    {
+
+        // Retrieve operation ID for the payment
+        $operationId = Payment::where('id', $id)->value('operation_id');
+        // Delete the payment by getting the operation first 
+        Payment::where('operation_id', $operationId)->findOrFail($id)->delete();
+        // Calculate total paid amount and total price
+        $sumAmountPaid = (float) Payment::where('operation_id', $operationId)->sum('amount_paid');
+        $totalPrice = (float) Operation::where('id', $operationId)->value('total_cost');
+        // Update operation status based on payment status
+        Operation::where('id', $operationId)->update(['is_paid' => ($sumAmountPaid === $totalPrice) ? 1 : 0]);
+        return response()->json(['message' => 'Payment deleted successfully'], 204);
+    }
 }

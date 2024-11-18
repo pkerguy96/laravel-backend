@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string("product_name")->unique();
             $table->string("product_family");
             $table->string("product_nature")->nullable();
+            $table->unsignedInteger('qte')->default(0);
             $table->unsignedInteger("min_stock")->nullable();
             $table->timestamps();
         });

@@ -19,7 +19,9 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Operation;
 use App\Models\operation_detail;
 use App\Events\MyEvent;
+use App\Models\Notification;
 use App\Models\Product;
+use App\Models\User;
 use App\Models\WaitingRoom;
 
 class XrayController extends Controller
@@ -233,7 +235,19 @@ class XrayController extends Controller
                     ], 400);
                 }
             }
+            $nurses = User::where('role', 'nurse')->get();
 
+            // Create notifications for each nurse
+            foreach ($nurses as $nurse) {
+                Notification::create([
+                    'user_id' => $nurse->id,
+                    'title' => 'Une facture est disponible',
+                    'message' => 'Une facture est disponible',
+                    'is_read' => false,
+                    'type' => 'payment',
+                    "target_id" =>  $operation->id
+                ]);
+            }
             return response()->json(['message' => 'Operation updated successfully.']);
         } catch (\Throwable $th) {
             Log::error('Error updating operation', ['error' => $th->getMessage()]);
@@ -251,6 +265,7 @@ class XrayController extends Controller
             'total_cost' => 0, // Initialize total_cost to 0
             'is_paid' => 0,
             'note' => null,
+            'type' => 'payment'
         ]);
 
         $id = $operation->id;
@@ -313,6 +328,19 @@ class XrayController extends Controller
         $waiting =   WaitingRoom::where('patient_id', $request->patient_id)->first();
         if ($waiting) {
             $waiting->delete();
+        }
+        $nurses = User::where('role', 'nurse')->get();
+
+        // Create notifications for each nurse
+        foreach ($nurses as $nurse) {
+            Notification::create([
+                'user_id' => $nurse->id,
+                'title' => 'Une facture est disponible',
+                'message' => 'Une facture est disponible',
+                'is_read' => false,
+                'type' => 'payment',
+                "target_id" =>  $operation->id
+            ]);
         }
         Log::info('Operation created and updated successfully', ['operation' => $operation]);
 

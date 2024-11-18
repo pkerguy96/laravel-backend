@@ -21,7 +21,7 @@ class WaitingRoomController extends Controller
     public function index()
     {
         try {
-
+            Log::info('darbat');
             $patientswaiting = WaitingRoom::count();
             return $this->success($patientswaiting, 'success', 201);
         } catch (\Throwable $th) {

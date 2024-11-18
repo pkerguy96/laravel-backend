@@ -9,9 +9,11 @@ use App\Http\Resources\AppointmentCollection;
 use App\Http\Requests\AppointmentRequest;
 use Illuminate\Support\Carbon;
 use App\Http\Resources\AppointmentResource;
+use App\Traits\HttpResponses;
 
 class AppointmentController extends Controller
 {
+    use HttpResponses;
     /**
      * Display a listing of the resource.
      */
@@ -128,6 +130,6 @@ class AppointmentController extends Controller
         }
         // Delete the appointment
         $appointment->delete();
-        return response()->json(['message' => 'Appointment deleted'], 204);
+        return $this->success(null, 'deleted', 200);
     }
 }
