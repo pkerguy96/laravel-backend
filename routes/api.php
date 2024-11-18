@@ -74,6 +74,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     route::apiResource('Operation', OperationController::class);
     Route::get('getByOperationId/{id}', [OperationController::class, 'getByOperationId']);
     Route::get('recurringOperation', [OperationController::class, 'recurringOperation']);
+    Route::get('getXraysByOperation/{id}', [OperationController::class, 'getXraysByOperation']);
 
     /* ordonance */
     route::apiResource('Ordonance', OrdonanceController::class);

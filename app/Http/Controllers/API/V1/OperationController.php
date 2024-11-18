@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Resources\OperationResource;
 use App\Http\Resources\PayementResource;
 use App\Http\Resources\treatementOperationCollection;
+use App\Http\Resources\XrayCollectionForNurse;
 use App\Models\Payment;
 use App\Models\Xray;
 
@@ -174,5 +175,15 @@ class OperationController extends Controller
         // Update operation status based on payment status
         Operation::where('id', $operationId)->update(['is_paid' => ($sumAmountPaid === $totalPrice) ? 1 : 0]);
         return response()->json(['message' => 'Payment deleted successfully'], 204);
+    }
+
+    public function getXraysByOperation($operationId)
+    {
+
+        $xrays = Xray::with('patient')
+            ->where('operation_id', $operationId)
+            ->get();
+
+        return new XrayCollectionForNurse($xrays);
     }
 }

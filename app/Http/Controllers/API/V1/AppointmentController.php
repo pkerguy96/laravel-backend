@@ -76,7 +76,7 @@ class AppointmentController extends Controller
             ], 422);
         }
         // Minimum difference between appointments in minutes set it for 15 min 
-        $minDifference = 15;
+        $minDifference = 1;
         $earliestAllowedTime = $appointment_date->copy()->subMinutes($minDifference);
         $latestAllowedTime = $appointment_date->copy()->addMinutes($minDifference);
         $existingAppointments = Appointment::whereBetween('date', [$earliestAllowedTime, $latestAllowedTime])

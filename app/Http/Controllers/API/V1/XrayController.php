@@ -101,6 +101,17 @@ class XrayController extends Controller
                     'entry_time' => Carbon::now()
                 ]);
             }
+            $nurses = User::where('role', 'nurse')->get();
+            foreach ($nurses as $nurse) {
+                Notification::create([
+                    'user_id' => $nurse->id,
+                    'title' => 'Une radiographie est disponible',
+                    'message' => 'Une radiographie est disponible',
+                    'is_read' => false,
+                    'type' => 'xray',
+                    "target_id" =>  $operation->id
+                ]);
+            }
             return $this->success($operation->id, 'Radiographies enregistrées avec succès', 201);
         } catch (\Throwable $th) {
             Log::error('Error storing x-ray data: ' . $th->getMessage());
