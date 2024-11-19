@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreSupplierRequest;
 use App\Http\Resources\SupplierResource;
+use App\Http\Resources\SupplierResourceNameId;
 use App\Models\Supplier;
 use App\Traits\HttpResponses;
 use Illuminate\Http\Request;
@@ -40,7 +41,15 @@ class SupplierController extends Controller
 
         return SupplierResource::collection($suppliers);
     }
-
+    public function showAllSuppliers()
+    {
+        try {
+            $suppliers =  Supplier::all();
+            return SupplierResourceNameId::collection($suppliers);
+        } catch (\Throwable $th) {
+            return $this->error(null, $th->getMessage(), 500);
+        }
+    }
 
     /**
      * Store a newly created resource in storage.

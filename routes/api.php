@@ -17,6 +17,7 @@ use App\Http\Controllers\API\V1\WaitingRoomController;
 use App\Http\Controllers\API\V1\XrayController;
 use App\Http\Controllers\API\V1\NotificationAlertController;
 use App\Http\Controllers\API\V1\OperationPrefsController;
+use App\Http\Controllers\API\V1\ProductSupplierController;
 use App\Http\Controllers\API\V1\SupplierController;
 use App\Http\Controllers\API\V1\Xraypreferences;
 use App\Models\OperationPref;
@@ -60,12 +61,14 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     route::get('GetWaitingList', [WaitingRoomController::class, 'GetWaitingList']);
     /* Supplier routes */
     route::apiResource('Supplier', SupplierController::class);
+    Route::get('showAllSuppliers', [SupplierController::class, 'showAllSuppliers']);
 
 
     /* stock */
     route::apiResource('Stock', StockController::class);
 
-
+    /* supplierproduct */
+    route::apiResource('Supplierproduct', ProductSupplierController::class);
 
     /* xray */
     route::apiResource('xray', XrayController::class);
