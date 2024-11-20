@@ -10,6 +10,8 @@ use App\Http\Controllers\API\V1\DashboardKpisController;
 use App\Http\Controllers\API\V1\NurseController;
 use App\Http\Controllers\API\V1\fileuploadController;
 use App\Http\Controllers\API\V1\FinancialController;
+use App\Http\Controllers\API\V1\HospitalController;
+use App\Http\Controllers\API\V1\HospitalOperationsController;
 use App\Http\Controllers\API\V1\OperationController;
 use App\Http\Controllers\API\V1\OrdonanceController;
 use App\Http\Controllers\API\V1\StockController;
@@ -102,7 +104,10 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     /* preferences */
     route::apiResource('XrayPreferences', Xraypreferences::class);
     route::apiResource('OperationPreferences', OperationPrefsController::class);
-
+    /* hospital */
+    route::apiResource('Hospital', HospitalController::class);
+    /* hospital actions */
+    route::apiResource('Hospitaloperations', HospitalOperationsController::class);
 
     /* KPIS */
     //Kpis
