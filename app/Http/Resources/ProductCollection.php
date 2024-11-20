@@ -22,7 +22,7 @@ class ProductCollection extends ResourceCollection
                 'product_family' => $product->product_family,
                 'product_nature' => $product->product_nature,
                 'min_stock' => (int) $product->min_stock,
-
+                'qte' => (int) $product->qte
             ];
         });
     }

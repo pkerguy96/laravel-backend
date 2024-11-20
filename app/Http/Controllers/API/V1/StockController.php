@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Resources\ProductCollection;
+use App\Http\Resources\productoperationpage;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Traits\HttpResponses;
@@ -36,7 +37,13 @@ class StockController extends Controller
 
         return new ProductCollection($patients);
     }
+    public function getProductsForOperation()
+    {
+        $products = Product::select('id', 'product_name')->get();
 
+        // Return a resource collection for all products
+        return productoperationpage::collection($products);
+    }
     /**
      * Store a newly created resource in storage.
      */

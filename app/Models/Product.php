@@ -14,4 +14,9 @@ class Product extends Model
     {
         return $this->hasMany(Product::class, 'product_id');
     }
+
+    public function ProductConsumable()
+    {
+        return $this->hasMany(ProductOperationConsumables::class, 'product_id');
+    }
 }

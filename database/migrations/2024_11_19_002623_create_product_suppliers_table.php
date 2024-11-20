@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('buy_price', 10, 2);          // Price per unit
             $table->decimal('sell_price', 10, 2);          // Price per unit
             $table->date('expiry_date')->nullable();  // Expiry date of the batch
+            $table->string("invoice")->nullable();
             $table->timestamps();                    // Created and updated timestamps
 
             // Foreign keys

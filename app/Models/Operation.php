@@ -25,4 +25,8 @@ class Operation extends Model
     {
         return $this->hasMany(Xray::class, 'operation_id');
     }
+    public function ProductConsumable()
+    {
+        return $this->hasMany(ProductOperationConsumables::class, 'operation_id');
+    }
 }

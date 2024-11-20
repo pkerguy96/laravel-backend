@@ -21,6 +21,7 @@ use App\Models\operation_detail;
 use App\Events\MyEvent;
 use App\Models\Notification;
 use App\Models\Product;
+use App\Models\ProductOperationConsumables;
 use App\Models\User;
 use App\Models\WaitingRoom;
 
@@ -228,21 +229,28 @@ class XrayController extends Controller
             // Step 9: Handle consumables
             $consomables = collect($request->input('consomables'));
             foreach ($consomables as $consomable) {
-                $productName = $consomable['consomable'];
+                $productid = $consomable['consomable'];
                 $quantity = $consomable['qte'];
-                $product = Product::where('product_name', $productName)->first();
+                $product = Product::where('id', $productid)->first();
                 if ($product) {
-                    if ($product->min_stock < $quantity) {
+                    if ($product->qte < $quantity) {
                         return response()->json([
-                            'error' => "Not enough stock of '{$productName}'. Available: {$product->min_stock}, Requested: {$quantity}."
+                            'error' => "Not enough stock of '{$product->product_name}'. Available: {$product->min_stock}, Requested: {$quantity}."
                         ], 400);
                     }
                     // Deduct stock
-                    $product->min_stock -= $quantity;
+                    $product->qte -= $quantity;
                     $product->save();
+
+                    //consomables
+                    ProductOperationConsumables::create([
+                        'operation_id' => $operation->id,
+                        'product_id' => $product->id,
+                        'quantity' => $quantity,
+                    ]);
                 } else {
                     return response()->json([
-                        'error' => "Consumable '{$productName}' is out of stock."
+                        'error' => "Consumable '{$product->product_name}' is out of stock."
                     ], 400);
                 }
             }
@@ -268,7 +276,7 @@ class XrayController extends Controller
 
     public function insertWihtoutxray(Request $request)
     {
-        log::info($request->input('patient_id'));
+
 
         // Step 1: Create a new operation
         $operation = Operation::create([
@@ -276,7 +284,7 @@ class XrayController extends Controller
             'total_cost' => 0, // Initialize total_cost to 0
             'is_paid' => 0,
             'note' => null,
-            'type' => 'payment'
+
         ]);
 
         $id = $operation->id;
@@ -284,7 +292,7 @@ class XrayController extends Controller
 
         // Step 2: Handle treatment status
         $isDone = $request->input('treatment_isdone', 0);
-        Log::info('isDone', ['isdone' => $isDone]);
+
         if ($isDone == 1) {
             $operation->treatment_isdone = 1;
         } else {
@@ -302,14 +310,40 @@ class XrayController extends Controller
                 'operation_name' => $xray['xray_type'],
                 'price' => $xray['price'],
             ]);
-            Log::info('Created new X-ray', ['data' => $xray]);
         }
 
         // Add rowsTotalPrice to the operation's total_cost
         $operation->total_cost += $rowsTotalPrice;
-        Log::info('Rows total price added to operation', ['total_cost' => $operation->total_cost]);
+        // Step 9: Handle consumables
+        $consomables = collect($request->input('consomables'));
+        foreach ($consomables as $consomable) {
+            $productid = $consomable['consomable'];
+            $quantity = $consomable['qte'];
+            $product = Product::where('id', $productid)->first();
+            if ($product) {
+                if ($product->qte < $quantity) {
+                    return response()->json([
+                        'error' => "Not enough stock of '{$product->product_name}'. Available: {$product->min_stock}, Requested: {$quantity}."
+                    ], 400);
+                }
+                // Deduct stock
+                $product->qte -= $quantity;
+                $product->save();
 
-        // Step 4: Handle consumables
+                //consomables
+                ProductOperationConsumables::create([
+                    'operation_id' => $operation->id,
+                    'product_id' => $product->id,
+                    'quantity' => $quantity,
+                ]);
+            } else {
+                return response()->json([
+                    'error' => "Consumable '{$product->product_name}' is out of stock."
+                ], 400);
+            }
+        }
+
+        /* // Step 4: Handle consumables
         $consomables = collect($request->input('consomables'));
         foreach ($consomables as $consomable) {
             $productName = $consomable['consomable'];
@@ -326,13 +360,19 @@ class XrayController extends Controller
                     // Deduct stock
                     $product->min_stock -= $quantity;
                     $product->save();
+                    //consomables
+                    ProductOperationConsumables::create([
+                        'operation_id' => $operation->id,
+                        'product_id' => $product->id,
+                        'quantity' => $quantity,
+                    ]);
                 } else {
                     return response()->json([
                         'error' => "Consumable '{$productName}' is out of stock."
                     ], 400);
                 }
             }
-        }
+        } */
 
         // Save the updated operation after adding all costs
         $operation->save();
@@ -353,12 +393,6 @@ class XrayController extends Controller
                 "target_id" =>  $operation->id
             ]);
         }
-        Log::info('Operation created and updated successfully', ['operation' => $operation]);
-
-        // Dispatch an event or perform additional actions as needed
-        Log::info('Dispatching OperationTestEvent');
-        /* event(new MyEvent('hello world')); */
-
         return response()->json(['message' => 'Operation created and details added successfully.'], 201);
     }
 
