@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Log;
 
 class PatientDetailResource extends JsonResource
 {
@@ -19,81 +20,86 @@ class PatientDetailResource extends JsonResource
             'nom' => $this->nom,
             'prenom' => $this->prenom,
             'cin' => $this->cin,
-            'date' => $this->date,
+            'date' => optional($this->date)->format('Y-m-d'),
             'address' => $this->address,
             'sex' => $this->sex,
             'phoneNumber' => $this->phone_number,
             'mutuelle' => $this->mutuelle,
             'note' => $this->note,
-            'appointments' => $this->mapAppointments($this->appointments),
-            'operations' => $this->mapOperations($this->operations),
+            'appointments' => $this->mapAppointments(optional($this->appointments)),
+            'operations' => $this->mapOperations(optional($this->operations)),
         ];
     }
 
     protected function mapAppointments($appointments)
     {
-        return $appointments->map(function ($appointment) {
+        return optional($appointments)->map(function ($appointment) {
+            Log::info($appointment);
             return [
                 'id' => $appointment->id,
-                'title' => $appointment->title,
-                'date' => $appointment->date,
+                'date' => $appointment->date ? \Carbon\Carbon::parse($appointment->date)->format('Y-m-d H:i:s') : null,
                 'note' => $appointment->note,
             ];
-        });
+        }) ?? []; // Return an empty array if null
     }
+
     protected function mapOperations($operations)
     {
-        return $operations->map(function ($operation) {
+        return optional($operations)->map(function ($operation) {
             return [
                 'total_cost' => $operation->total_cost,
                 'note' => $operation->note,
-                'date' => $operation->created_at->format('Y-m-d H:i:s'),
+                'date' => optional($operation->created_at)->format('Y-m-d H:i:s'),
                 'operation_type' => $this->resolveOperationType($operation), // Unified operation type
             ];
-        });
+        }) ?? []; // Return an empty array if null
     }
-
 
     /**
      * Resolve the operation type.
      * Include `operationdetails`, `xrays`, and `outsourceOperations` data.
      *
-     * @param  \App\Models\Operation  $operation
+     * @param  \App\Models\Operation|null  $operation
      * @return array
      */
     protected function resolveOperationType($operation)
     {
+        if (!$operation) {
+            return []; // Return empty array if operation is null
+        }
+
         // Extract data as arrays directly to prevent issues
-        $operationDetails = $operation->operationdetails->map(function ($detail) {
+        $operationDetails = optional($operation->operationdetails)->map(function ($detail) {
             return [
                 'id' => $detail->id,
                 'operation_type' => $detail->operation_name,
                 'price' => $detail->price,
+                'date' => optional($detail->created_at)->format('Y-m-d H:i:s'),
                 'source' => 'operation_detail',
             ];
-        })->toArray(); // Convert to array
+        })->toArray() ?? []; // Convert to array or return empty
 
-        $xrayTypes = $operation->xray->map(function ($xray) {
+        $xrayTypes = optional($operation->xray)->map(function ($xray) {
             return [
                 'id' => $xray->id,
                 'operation_type' => $xray->xray_type ?? 'X-Ray',
                 'price' => $xray->price ?? null,
+                'date' => optional($xray->created_at)->format('Y-m-d H:i:s'),
                 'source' => 'xray',
             ];
-        })->toArray(); // Convert to array
+        })->toArray() ?? []; // Convert to array or return empty
 
-        $outsourceOperations = $operation->externalOperations->map(function ($external) {
+        $outsourceOperations = optional($operation->externalOperations)->map(function ($external) {
             return [
                 'id' => $external->id,
                 'operation_type' => $external->operation_type,
                 'price' => $external->total_price,
+                'date' => optional($external->created_at)->format('Y-m-d H:i:s'),
                 'source' => 'external_operation',
             ];
-        })->toArray(); // Convert to array
+        })->toArray() ?? []; // Convert to array or return empty
 
         // Safely merge arrays
-        $merged = array_merge($operationDetails, $xrayTypes, $outsourceOperations);
-
-        return $merged; // Return the final merged array
+        return array_merge($operationDetails, $xrayTypes, $outsourceOperations);
     }
 }

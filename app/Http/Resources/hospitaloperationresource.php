@@ -25,9 +25,9 @@ class hospitaloperationresource extends JsonResource
             'operation_date' => $this->operation_date
                 ? Carbon::parse($this->operation_date)->format('Y-m-d')
                 : null,
-            'total_price' => number_format($this->total_price, 2),
+            'total_price' => $this->total_price,
             'amount_paid'
-            => number_format($totalPaid, 2),
+            => $totalPaid,
             'description' => $this->description,
 
 
