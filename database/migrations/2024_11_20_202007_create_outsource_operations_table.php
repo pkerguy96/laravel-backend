@@ -19,8 +19,11 @@ return new class extends Migration
             $table->string('operation_type');
             $table->text('description')->nullable();
             $table->date('operation_date');
-            $table->decimal('price', 10, 2);
+            $table->decimal('total_price', 10, 2); // Replacing 'price' with 'total_price'
+            $table->decimal('amount_paid', 10, 2); // Adding 'amount_paid'
             $table->timestamps();
+
+            // Foreign keys
             $table->foreign('hospital_id')->references('id')->on('hospitals');
             $table->foreign('patient_id')->references('id')->on('patients');
             $table->foreign('operation_id')->references('id')->on('operations');

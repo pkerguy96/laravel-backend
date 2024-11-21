@@ -52,7 +52,7 @@ class OperationController extends Controller
     public function store(Request $request) {}
     public function getByOperationId($operationId)
     {
-        $operation = Operation::with(['operationdetails', 'xray', 'payments'])
+        $operation = Operation::with(['operationdetails', 'xray', 'payments', 'externalOperations'])
             ->where('id', $operationId)
             ->first();
 

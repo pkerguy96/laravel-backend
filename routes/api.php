@@ -108,6 +108,23 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     route::apiResource('Hospital', HospitalController::class);
     /* hospital actions */
     route::apiResource('Hospitaloperations', HospitalOperationsController::class);
+    /* outsource operation */
+
+
+    Route::get('/searchPatients', [HospitalOperationsController::class, 'searchPatients']);
+    Route::get('/searchHospitals', [HospitalOperationsController::class, 'searchHospitals']);
+
+
+
+
+
+
+
+
+
+
+
+
 
     /* KPIS */
     //Kpis

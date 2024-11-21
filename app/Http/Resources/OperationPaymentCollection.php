@@ -20,8 +20,8 @@ class OperationPaymentCollection extends ResourceCollection
                 'id' => $operation->id,
                 'full_name' => $operation->patient->nom . ' ' . $operation->patient->prenom,
                 'date' => $operation->created_at->toDateString(),
-                'total_cost' => $operation->total_cost,
-                'totalPaid' => $totalAmountPaid,
+                'total_cost' => number_format($operation->total_cost, 2),
+                'totalPaid' => number_format($totalAmountPaid, 2),
                 'isPaid' => (bool) $operation->is_paid,
             ];
         });

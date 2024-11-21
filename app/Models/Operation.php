@@ -29,4 +29,8 @@ class Operation extends Model
     {
         return $this->hasMany(ProductOperationConsumables::class, 'operation_id');
     }
+    public function externalOperations()
+    {
+        return $this->hasMany(outsourceOperation::class, 'operation_id');
+    }
 }

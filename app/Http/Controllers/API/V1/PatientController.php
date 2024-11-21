@@ -67,10 +67,10 @@ class PatientController extends Controller
         }
     }
 
-    /*  public function patientDetails(string $id)
+    public function patientDetails(string $id)
     {
-        return  new PatientDetailResource(Patient::with('appointments', 'operations', 'operations.operationdetails', 'operations.operationdetails.preference')->where('id', $id)->first());
-    } */
+        return  new PatientDetailResource(Patient::with('appointments', 'operations', 'operations.operationdetails')->where('id', $id)->first());
+    }
 
     public function testpatientstore(Request $request)
     {

@@ -24,6 +24,19 @@ class Patient extends Model
         'disease',
         'referral'
     ];
+    protected static function boot()
+    {
+        parent::boot();
+        static::created(function ($patient) {
+            // Use the patient's ID to create a folder
+            $patientFolder = 'patients/' . $patient->id;
+            // Create the folder using the Storage facade
+            Storage::disk('public')->makeDirectory($patientFolder);
+            // Assign the folder to the patient
+            $patient->p_folder = $patientFolder;
+            $patient->save(); // Save the patient to persist the changes
+        });
+    }
     public function appointments()
     {
         return $this->hasMany(Appointment::class, 'patient_id');
@@ -40,21 +53,13 @@ class Patient extends Model
     {
         return $this->hasMany(Payment::class, 'patient_id');
     }
-    protected static function boot()
-    {
-        parent::boot();
-        static::created(function ($patient) {
-            // Use the patient's ID to create a folder
-            $patientFolder = 'patients/' . $patient->id;
-            // Create the folder using the Storage facade
-            Storage::disk('public')->makeDirectory($patientFolder);
-            // Assign the folder to the patient
-            $patient->p_folder = $patientFolder;
-            $patient->save(); // Save the patient to persist the changes
-        });
-    }
+
     public function waitingRoom()
     {
         return $this->hasOne(WaitingRoom::class);
+    }
+    public function operations()
+    {
+        return $this->hasMany(Operation::class, 'patient_id');
     }
 }

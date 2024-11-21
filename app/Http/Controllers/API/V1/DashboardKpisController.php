@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\SearchOperationDebtResource;
 use App\Models\Appointment;
 use App\Models\Operation;
+use App\Models\outsourceOperation;
 use App\Models\Patient;
 use App\Models\Payment;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class DashboardKpisController extends Controller
 {
@@ -329,12 +331,82 @@ class DashboardKpisController extends Controller
             'data' => AppointmentKpi::collection($appointments),
         ]);
     } */
-    public function PatientsDebt(Request $request)
+    /* public function PatientsDebt(Request $request)
     {
 
 
 
         $Operations = Operation::with('patient', 'operationdetails', 'payments')->where('is_paid', 0)->whereBetween('created_at', [Carbon::parse($request->date)->startOfDay(),  Carbon::parse($request->date2)->endOfDay()])->get();
         return   SearchOperationDebtResource::collection($Operations);
+    } */
+    public function PatientsDebt(Request $request)
+    {
+        Log::info('Request data:', $request->all());
+
+        $startDate = Carbon::parse($request->date)->startOfDay();
+        $endDate = Carbon::parse($request->date2)->endOfDay();
+
+        Log::info('Start Date:', [$startDate]);
+        Log::info('End Date:', [$endDate]);
+
+        $hospitals = $request->hospitals;
+
+        if ($hospitals === "tout") {
+            Log::info('Fetching all unpaid operations within date range...');
+
+            // Fetch unpaid operations from `Operation` table
+            $internalOperations = Operation::with('patient', 'operationdetails', 'payments')
+                ->where('is_paid', 0)
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->get();
+
+            // Fetch unpaid operations from `outsourceOperation` table
+            $externalOperations = outsourceOperation::with([
+                'operation.patient',
+                'operation.operationdetails',
+                'operation.payments',
+            ])
+                ->whereHas('operation', function ($query) use ($startDate, $endDate) {
+                    $query->where('is_paid', 0)
+                        ->whereBetween('created_at', [$startDate, $endDate]);
+                })
+                ->get();
+
+            // Merge both collections
+            $Operations = $internalOperations->merge(
+                $externalOperations->map(function ($external) {
+                    return $external->operation; // Extract `operation` from `outsourceOperation`
+                })
+            );
+
+            Log::info('Fetched All Operations:', $Operations->toArray());
+        } elseif (is_array($hospitals) && count($hospitals) > 0) {
+            Log::info('Fetching operations via outsourceOperation for specific hospital IDs:', $hospitals);
+
+            // Fetch operations via outsourceOperation
+            $Operations = outsourceOperation::with([
+                'operation.patient',
+                'operation.operationdetails',
+                'operation.payments',
+            ])
+                ->whereIn('hospital_id', $hospitals)
+                ->whereHas('operation', function ($query) use ($startDate, $endDate) {
+                    $query->where('is_paid', 0)
+                        ->whereBetween('created_at', [$startDate, $endDate]);
+                })
+                ->get();
+
+            Log::info('Fetched Operations via outsourceOperation:', $Operations->toArray());
+        } else {
+            Log::info('No valid hospital filter provided.');
+            $Operations = Operation::with('patient', 'operationdetails', 'payments')
+                ->where('is_paid', 0)
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->whereDoesntHave('externalOperations') // Exclude operations linked to outsourceOperation
+                ->get();
+        }
+
+        // Return the operations wrapped in a resource collection
+        return SearchOperationDebtResource::collection($Operations);
     }
 }

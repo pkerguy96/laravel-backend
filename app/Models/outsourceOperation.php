@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class outsourceOperation extends Model
 {
+    /*     protected $casts = [
+        'operation_date' => 'datetime',
+    ]; */
     protected $guarded = [];
     use HasFactory;
 
