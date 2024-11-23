@@ -10,6 +10,8 @@ use App\Http\Resources\PatientCollection;
 use App\Http\Requests\StorePatientRequest;
 use App\Http\Resources\PatientResource;
 use App\Http\Resources\PatientDetailResource;
+use App\Models\User;
+use App\Traits\HasPermissionCheck;
 use Illuminate\Support\Facades\Log;
 
 class PatientController extends Controller
@@ -17,9 +19,10 @@ class PatientController extends Controller
     /**
      * Display a listing of the resource.
      */
+    use HasPermissionCheck;
     public function index(Request $request)
     {
-
+        /*    $this->authorizePermission(['edit_patient', 'delete_patient']); */
         $searchQuery = $request->input('searchQuery');
         $patients =   Patient::with('appointments', 'Ordonance')
             ->orderBy('id', 'desc')
@@ -72,13 +75,13 @@ class PatientController extends Controller
         return  new PatientDetailResource(Patient::with('appointments', 'operations', 'operations.operationdetails', 'Xray')->where('id', $id)->first());
     }
 
-    public function testpatientstore(Request $request)
+    /*  public function testpatientstore(Request $request)
     {
         $patients = implode(', ', $request->input('patient_alergy'));
 
 
         dd($patients);
-    }
+    } */
 
 
     /**

@@ -27,7 +27,7 @@ class StoreNurseRequest extends FormRequest
             'termination_date' => 'nullable|date',
             'nom' => ['required'],
             'prenom' => ['required'],
-            'cin' => ['required'],
+            'cin' => ['nullable'],
             'date' => [
                 'required',
                 'date',
@@ -46,7 +46,7 @@ class StoreNurseRequest extends FormRequest
         return [
             'nom.required' => 'Le nom est requis.',
             'prenom.required' => 'Le prénom est requis.',
-            'cin.required' => 'Le CIN est requis.',
+
             'date.required' => 'La date de naissance est requise.',
             'date.date' => 'La date de naissance doit être une date valide.',
             'date.before_or_equal' => 'La date de naissance ne peut pas être dans le futur.',

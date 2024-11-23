@@ -46,13 +46,21 @@ class AuthController extends Controller
             if ($user->profile_picture) {
                 $url = asset("storage/profile_pictures/"  . $user->profile_picture);
             }
-
+            $permissionNames = [];
+            if ($user->hasRole('doctor')) {
+                $permissionNames[] = 'doctor';
+            } else {
+                $permissionsviarole = $user->getPermissionsViaRoles()->toArray();
+                $permissionNames = array_map(function ($permission) {
+                    return $permission['name'];
+                }, $permissionsviarole);
+            }
             //TODO SEND ONLY USER DATA
             return $this->success([
                 'user' => $user,
                 'token' => $token,
                 'profile' => $url,
-
+                'roles' => $permissionNames
 
             ]);
         } catch (\Throwable $th) {

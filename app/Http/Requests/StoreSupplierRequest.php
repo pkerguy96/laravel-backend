@@ -25,7 +25,7 @@ class StoreSupplierRequest extends FormRequest
     {
 
         return [
-            'name' => 'required|string|max:255',
+
             'address' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:15',
             'email' => [
@@ -45,9 +45,7 @@ class StoreSupplierRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'Le nom du fournisseur est obligatoire.',
-            'name.string' => 'Le nom doit être une chaîne de caractères.',
-            'name.max' => 'Le nom ne peut pas dépasser 255 caractères.',
+
             'email.email' => 'L\'adresse e-mail doit être valide.',
             'email.unique' => 'Cette adresse e-mail est déjà utilisée.',
             'status.required' => 'Le statut est obligatoire.',

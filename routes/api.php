@@ -19,6 +19,7 @@ use App\Http\Controllers\API\V1\WaitingRoomController;
 use App\Http\Controllers\API\V1\XrayController;
 use App\Http\Controllers\API\V1\NotificationAlertController;
 use App\Http\Controllers\API\V1\OperationPrefsController;
+use App\Http\Controllers\API\V1\PermissionController;
 use App\Http\Controllers\API\V1\ProductConsumableController;
 use App\Http\Controllers\API\V1\ProductSupplierController;
 use App\Http\Controllers\API\V1\SupplierController;
@@ -114,8 +115,16 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     Route::get('/searchPatients', [HospitalOperationsController::class, 'searchPatients']);
     Route::get('/searchHospitals', [HospitalOperationsController::class, 'searchHospitals']);
 
+    /* roles */
 
-
+    Route::post('/createRole', [PermissionController::class, 'createRole']);
+    route::get('getUsersViaRoles', [PermissionController::class, 'getUsersViaRoles']);
+    route::post('createRole', [PermissionController::class, 'createRole']);
+    route::get('RolesNursesList', [PermissionController::class, 'RolesNursesList']);
+    route::get('getRoles', [PermissionController::class, 'getRoles']);
+    route::post('userPermissions', [PermissionController::class, 'userPermissions']);
+    route::post('grantAccess', [PermissionController::class, 'grantAccess']);
+    Route::delete('deleteRole/{id}', [PermissionController::class, 'deleteRole']);
 
 
 

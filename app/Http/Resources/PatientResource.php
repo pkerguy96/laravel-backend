@@ -25,9 +25,9 @@ class PatientResource extends JsonResource
             'phoneNumber' => $this->phone_number,
             'mutuelle' => $this->mutuelle,
             'note' => $this->note,
-            'allergy' => $this->allergy ? explode(',', $this->allergy) : [],
-            'disease' => $this->disease ? explode(',', $this->disease) : [],
-            'referral' => $this->referral ? explode(',', $this->referral) : [],
+            'allergy' => is_string($this->allergy) ? explode(',', $this->allergy) : (is_array($this->allergy) ? $this->allergy : []),
+            'disease' => is_string($this->disease) ? explode(',', $this->disease) : (is_array($this->disease) ? $this->disease : []),
+            'referral' => is_string($this->referral) ? explode(',', $this->referral) : (is_array($this->referral) ? $this->referral : []),
             'appointments' => CustomAppointmentResource::collection($this->appointments),
             'ordonances' => OrdonanceResource::collection($this->Ordonance),
         ];

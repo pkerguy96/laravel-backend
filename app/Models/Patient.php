@@ -10,6 +10,24 @@ class Patient extends Model
 {
     use HasFactory;
 
+    public function getAllergyAttribute($value)
+    {
+        return $value ? explode(',', $value) : [];
+    }
+
+    // Convert disease to an array when retrieving
+    public function getDiseaseAttribute($value)
+    {
+        return $value ? explode(',', $value) : [];
+    }
+
+    // Convert referral to an array when retrieving
+    public function getReferralAttribute($value)
+    {
+        return $value ? explode(',', $value) : [];
+    }
+
+
     protected $fillable = [
         'nom',
         'prenom',

@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Carbon;
 
 class PatientDetailResource extends JsonResource
 {
@@ -20,21 +21,44 @@ class PatientDetailResource extends JsonResource
             'nom' => $this->nom,
             'prenom' => $this->prenom,
             'cin' => $this->cin,
-            'date' => optional($this->date)->format('Y-m-d'),
+            'date' => $this->formatDate($this->date),
             'address' => $this->address,
             'sex' => $this->sex,
             'phoneNumber' => $this->phone_number,
             'mutuelle' => $this->mutuelle,
             'note' => $this->note,
+            'allergy' => $this->allergy,
+            'disease' => $this->disease,
+            'referral' => $this->referral,
             'appointments' => $this->mapAppointments(optional($this->appointments)),
             'operations' => $this->mapOperations(optional($this->operations)),
+            'upcomingAppointmentsCount' => $this->countAppointments($this->appointments, 'upcoming'),
+            'pastAppointmentsCount' => $this->countAppointments($this->appointments, 'past'),
         ];
     }
+    protected function formatDate($date)
+    {
+        return $date ? Carbon::parse($date)->format('Y-m-d') : null;
+    }
+    protected function countAppointments($appointments, $type)
+    {
+        return optional($appointments)->filter(function ($appointment) use ($type) {
+            $now = Carbon::now();
+            $appointmentDate = Carbon::parse($appointment->date);
 
+            if ($type === 'upcoming') {
+                return $appointmentDate->isFuture();
+            } elseif ($type === 'past') {
+                return $appointmentDate->isPast();
+            }
+
+            return false;
+        })->count(); // Return the count of filtered appointments
+    }
     protected function mapAppointments($appointments)
     {
         return optional($appointments)->map(function ($appointment) {
-            Log::info($appointment);
+
             return [
                 'id' => $appointment->id,
                 'date' => $appointment->date ? \Carbon\Carbon::parse($appointment->date)->format('Y-m-d H:i:s') : null,
@@ -75,7 +99,7 @@ class PatientDetailResource extends JsonResource
                 'operation_type' => $detail->operation_name,
                 'price' => $detail->price,
                 'date' => optional($detail->created_at)->format('Y-m-d H:i:s'),
-                'source' => 'operation_detail',
+                'source' => 'Procédures',
             ];
         })->toArray() ?? []; // Convert to array or return empty
 
@@ -85,7 +109,7 @@ class PatientDetailResource extends JsonResource
                 'operation_type' => $xray->xray_type ?? 'X-Ray',
                 'price' => $xray->price ?? null,
                 'date' => optional($xray->created_at)->format('Y-m-d H:i:s'),
-                'source' => 'xray',
+                'source' => 'Radiographie',
             ];
         })->toArray() ?? []; // Convert to array or return empty
 
@@ -95,7 +119,7 @@ class PatientDetailResource extends JsonResource
                 'operation_type' => $external->operation_type,
                 'price' => $external->total_price,
                 'date' => optional($external->created_at)->format('Y-m-d H:i:s'),
-                'source' => 'external_operation',
+                'source' => 'Opération externe',
             ];
         })->toArray() ?? []; // Convert to array or return empty
 

@@ -26,8 +26,7 @@ class SupplierController extends Controller
         if (!empty($searchQuery)) {
             // Apply search filters if a search query is provided
             $suppliers = Supplier::where(function ($query) use ($searchQuery) {
-                $query->where('name', 'like', "%{$searchQuery}%")
-                    ->orWhere('address', 'like', "%{$searchQuery}%")
+                $query->Where('address', 'like', "%{$searchQuery}%")
                     ->orWhere('phone', 'like', "%{$searchQuery}%")
                     ->orWhere('email', 'like', "%{$searchQuery}%")
                     ->orWhere('contact_person', 'like', "%{$searchQuery}%")
@@ -44,7 +43,7 @@ class SupplierController extends Controller
     public function showAllSuppliers()
     {
         try {
-            $suppliers =  Supplier::all();
+            $suppliers =  Supplier::where('status', 'active')->get();
             return SupplierResourceNameId::collection($suppliers);
         } catch (\Throwable $th) {
             return $this->error(null, $th->getMessage(), 500);

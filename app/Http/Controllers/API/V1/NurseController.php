@@ -55,15 +55,9 @@ class NurseController extends Controller
 
 
             $data = new NurseResource(User::create($attributes));
-            return response()->json([
-                'message' => 'Nurse created successfully',
-                'data' => $data
-            ], 201);
+            return $this->success($data, 'Nurse created successfully', 201);
         } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to create Nurse',
-                'error' => $e->getMessage(),
-            ], 500);
+            return $this->error(null, $e->getMessage(), 500);
         }
     }
 
@@ -88,6 +82,28 @@ class NurseController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $authenticatedUser = auth()->user();
+
+            // Ensure only doctors can delete nurses
+            if ($authenticatedUser->role !== 'doctor') {
+                return $this->error(null, 'Only doctors can delete nurses!', 401);
+            }
+
+            // Find the nurse by ID
+            $nurse = User::where('role', 'nurse')->find($id);
+
+            // Check if the nurse exists
+            if (!$nurse) {
+                return $this->error(null, 'Nurse not found!', 404);
+            }
+
+            // Delete the nurse
+            $nurse->delete();
+
+            return $this->success(null, 'Nurse deleted successfully!', 200);
+        } catch (\Exception $e) {
+            return $this->error(null, 'Failed to delete Nurse: ' . $e->getMessage(), 500);
+        }
     }
 }

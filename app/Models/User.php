@@ -10,10 +10,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -44,5 +45,14 @@ class User extends Authenticatable
     public function Notifications()
     {
         return $this->hasMany(Notification::class, 'user_id');
+    }
+    protected static function booted()
+    {
+        static::creating(function ($user) {
+            // Automatically assign the doctor role if the user has the doctor role type
+            if ($user->role === 'doctor') { // Assuming you have a 'role' column
+                $user->assignRole('doctor');
+            }
+        });
     }
 }

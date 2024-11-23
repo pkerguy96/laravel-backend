@@ -74,7 +74,7 @@ class XrayController extends Controller
                         'operation_id' => $operation->id,
                         'xray_type' => $type,
                         'view_type' => implode(',', $xray['view_type']), // Combine view types into a string
-                        'body_side' => implode(',', $xray['body_side']), // Combine body sides into a string
+                        'body_side' => isset($xray['body_side']) ? implode(',', $xray['body_side']) : null,
                         'type' => $validatedData['type'] ?? 'xray',
                         'note' => $validatedData['note'] ?? null,
                         'price' => $xrayPreference->price,
