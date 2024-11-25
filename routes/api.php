@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\V1\AdminController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\V1\AuthController;
@@ -47,6 +48,8 @@ route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1'], f
 
 Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'middleware' => ['auth:sanctum']], function () {
     Route::get('Admin/logout', [AuthController::class, 'Logout']);
+    Route::post('Admin/update/profile', [AdminController::class, 'ModifyProfile']);
+
     Route::get('patientDetails/{id}', [PatientController::class, 'patientDetails']);
 
     route::apiResource('Patient', PatientController::class);
@@ -54,6 +57,10 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     Route::get('uploadsInfo', [fileuploadController::class, 'uploadsInfo']);
     Route::apiResource('Appointment', AppointmentController::class);
     Route::apiResource('Filesupload', fileuploadController::class);
+    Route::get('downloadZip/{clusterId}', [fileuploadController::class, 'downloadZip']);
+
+
+
 
 
     /* waiting room */

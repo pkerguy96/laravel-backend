@@ -53,6 +53,7 @@ class User extends Authenticatable
             if ($user->role === 'doctor') { // Assuming you have a 'role' column
                 $user->assignRole('doctor');
             }
+            app()->make(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
         });
     }
 }

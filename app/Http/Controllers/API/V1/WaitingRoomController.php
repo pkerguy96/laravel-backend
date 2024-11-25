@@ -21,7 +21,7 @@ class WaitingRoomController extends Controller
     public function index()
     {
         try {
-            Log::info('darbat');
+
             $patientswaiting = WaitingRoom::count();
             return $this->success($patientswaiting, 'success', 201);
         } catch (\Throwable $th) {
@@ -128,7 +128,7 @@ class WaitingRoomController extends Controller
 
         $waitingListQuery = WaitingRoom::with('patient') // Include 'patient' relationship
             ->orderByRaw("FIELD(status, 'current', 'pending', 'waiting')") // Custom order for statuses
-            ->orderBy('entry_time', 'desc'); // Then order by entry_time
+            ->orderBy('entry_time', 'asc'); // Then order by entry_time
 
         if (!empty($searchQuery)) {
             // Apply search filters if there's a search query

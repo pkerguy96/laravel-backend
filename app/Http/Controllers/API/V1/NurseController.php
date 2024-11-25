@@ -9,16 +9,19 @@ use App\Models\User;
 use App\Http\Requests\StoreNurseRequest;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Resources\NurseResource;
+use App\Traits\HasPermissionCheck;
 use App\Traits\HttpResponses;
 
 class NurseController extends Controller
 {
     use HttpResponses;
+    use HasPermissionCheck;
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
+        $this->authorizePermission(['superadmin']);
 
         return new NurseCollection(User::where('role', 'nurse')->orderBy('id', 'desc')->get());
     }
@@ -28,6 +31,7 @@ class NurseController extends Controller
      */
     public function store(StoreNurseRequest $request)
     {
+        $this->authorizePermission(['superadmin']);
 
         $authenticatedUserId = auth()->user();
         if ($authenticatedUserId->role === 'nurse') {
@@ -82,6 +86,8 @@ class NurseController extends Controller
      */
     public function destroy(string $id)
     {
+        $this->authorizePermission(['superadmin']);
+
         try {
             $authenticatedUser = auth()->user();
 

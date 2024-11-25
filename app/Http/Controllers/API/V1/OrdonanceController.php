@@ -9,6 +9,7 @@ use App\Http\Resources\OrdonanceCollection;
 use App\Http\Resources\OrdonanceResource;
 use App\Models\Ordonance_Details;
 use App\Models\WaitingRoom;
+use App\Traits\HasPermissionCheck;
 use App\Traits\HttpResponses;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -17,11 +18,14 @@ use Illuminate\Support\Facades\Log;
 class OrdonanceController extends Controller
 {
     use HttpResponses;
+    use HasPermissionCheck;
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
+        $this->authorizePermission(['superadmin', 'access_ordonance']);
+
         $searchQuery = $request->input('searchQuery'); // Get the search query from the request
         $perPage = $request->get('per_page', 20); // Default to 20 items per page if not specified
 
@@ -54,6 +58,8 @@ class OrdonanceController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorizePermission(['superadmin', 'insert_ordonance']);
+
         try {
 
             $medicineArray = $request->medicine;
@@ -115,6 +121,7 @@ class OrdonanceController extends Controller
      */
     public function show(string $id)
     {
+        $this->authorizePermission(['superadmin', 'access_ordonance']);
 
         $data = Ordonance::with('OrdonanceDetails', 'Patient')->where('id', $id)->first();
         return response()->json(['data' => $data], 200);
@@ -125,6 +132,8 @@ class OrdonanceController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $this->authorizePermission(['superadmin', 'update_ordonance']);
+
         try {
 
             $ordonance = Ordonance::findOrFail($id);
@@ -173,6 +182,8 @@ class OrdonanceController extends Controller
      */
     public function destroy(string $id)
     {
+        $this->authorizePermission(['superadmin', 'delete_ordonance']);
+
         try {
 
             $ordonance = Ordonance::findorfail($id);

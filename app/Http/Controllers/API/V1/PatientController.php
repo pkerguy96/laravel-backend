@@ -22,7 +22,7 @@ class PatientController extends Controller
     use HasPermissionCheck;
     public function index(Request $request)
     {
-        /*    $this->authorizePermission(['edit_patient', 'delete_patient']); */
+        $this->authorizePermission(['superadmin', 'access_patient']);
         $searchQuery = $request->input('searchQuery');
         $patients =   Patient::with('appointments', 'Ordonance')
             ->orderBy('id', 'desc')
@@ -49,6 +49,7 @@ class PatientController extends Controller
      */
     public function store(StorePatientRequest $request)
     {
+        $this->authorizePermission(['superadmin', 'insert_patient']);
 
         try {
 
@@ -72,7 +73,9 @@ class PatientController extends Controller
 
     public function patientDetails(string $id)
     {
-        return  new PatientDetailResource(Patient::with('appointments', 'operations', 'operations.operationdetails', 'Xray')->where('id', $id)->first());
+        $this->authorizePermission(['superadmin', 'detail_patient']);
+
+        return  new PatientDetailResource(Patient::with('appointments', 'operations', 'operations.operationdetails', 'Xray', 'Ordonance')->where('id', $id)->first());
     }
 
     /*  public function testpatientstore(Request $request)
@@ -89,7 +92,9 @@ class PatientController extends Controller
      */
     public function show(string $id)
     {
-        $user = Auth::user();
+        $this->authorizePermission(['superadmin', 'access_patient']);
+
+
 
 
         return  new PatientResource(Patient::where('id', $id)->first());
@@ -102,6 +107,7 @@ class PatientController extends Controller
     {
 
 
+        $this->authorizePermission(['superadmin', 'update_patient']);
 
         $patient = Patient::findOrFail($id);
 
@@ -128,6 +134,7 @@ class PatientController extends Controller
      */
     public function destroy(string $id)
     {
+        $this->authorizePermission(['superadmin', 'delete_patient']);
 
         Patient::findorfail($id)->delete();
         return response()->json(['message' => 'patient deleted successfully'], 204);

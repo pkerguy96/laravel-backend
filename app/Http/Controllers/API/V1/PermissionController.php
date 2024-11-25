@@ -42,9 +42,11 @@ class PermissionController extends Controller
     {
         try {
 
-            $roles = Role::with('users')->get();
 
 
+            $roles = Role::where('name', '!=', 'doctor')
+                ->with('users') // Include users for other roles
+                ->get();
             return new RoleCollection($roles);
         } catch (\Throwable $th) {
             return $this->error(null, $th->getMessage(), 500);
@@ -59,8 +61,9 @@ class PermissionController extends Controller
             if ($authenticatedUser->role === 'nurse') {
                 return $this->error(null, 'Seuls les médecins sont autorisés à accéder.', 401);
             }
-            $roles = RoleResource::collection(Role::all());
-            return $this->success($roles, 'success', 201);
+            $roles = Role::where('name', '!=', 'doctor')->get();
+            $rolesResource  = RoleResource::collection($roles);
+            return $this->success($rolesResource, 'success', 201);
         } catch (\Throwable $th) {
             $this->error($th->getMessage(), 'error', 501);
         }

@@ -22,23 +22,44 @@ class fileuploadController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+
+    public function index(Request $request)
     {
         try {
+            // Retrieve search query and pagination parameters
+            $searchQuery = $request->input('searchQuery');
+            $perPage = $request->get('per_page', 20);
 
-            $patientClusters = file_upload::select('cluster', 'folder_path')
-                ->groupBy('cluster', 'folder_path')
-                ->get();
-            if ($patientClusters->isEmpty()) {
-                return response()->json(['error' => 'No files found for the patient'], 404);
+            // Start the query
+            $query = file_upload::select('cluster', 'folder_path', 'created_at', 'type', 'patient_id')
+                ->groupBy('cluster', 'folder_path', 'created_at', 'type', 'patient_id');
+
+            // Apply search filters if a query is provided
+            if (!empty($searchQuery)) {
+                $query->where(function ($subQuery) use ($searchQuery) {
+                    $subQuery->where('type', 'like', "%{$searchQuery}%")
+                        ->orWhere('created_at', 'like', "%{$searchQuery}%");
+
+                    // Join with patients table for name search
+                    $subQuery->orWhereHas('patient', function ($patientQuery) use ($searchQuery) {
+                        $patientQuery->where('nom', 'like', "%{$searchQuery}%")
+                            ->orWhere('prenom', 'like', "%{$searchQuery}%");
+                    });
+                });
             }
-            foreach ($patientClusters as $file) {
+
+            // Paginate the results
+            $patientClusters = $query->paginate($perPage);
+
+            // Format the results with URLs
+            $patientClusters->getCollection()->transform(function ($file) {
                 $cluster = $file->cluster;
-                $url = Storage::disk('public')->url($file->folder_path);
-                // Append the URL to the cluster array
-                $urlsByClusters[$cluster][] = $url;
-            }
-            return response()->json(['urlsByClusters' => $urlsByClusters]);
+                $file->urls = Storage::disk('public')->url($file->folder_path);
+                return $file;
+            });
+
+            // Return paginated response
+            return response()->json($patientClusters, 200);
         } catch (\Throwable $th) {
             Log::error($th);
             return response()->json(['error' => 'An error occurred while retrieving the file URLs'], 500);
@@ -126,9 +147,9 @@ class fileuploadController extends Controller
         }
     }
 
+
     public function uploadsInfo(Request $request)
     {
-
         try {
             $patientClusters = file_upload::select('cluster', 'folder_path', 'created_at', 'patient_id', 'type', 'original_name')
                 ->groupBy('cluster', 'folder_path', 'created_at', 'patient_id', 'type', 'original_name')
@@ -140,57 +161,90 @@ class fileuploadController extends Controller
 
             $datesByClusters = [];
             $sizesByClusters = [];
-            $links = [];
             $clusterType = [];
             $clusterMime = [];
             $patients = [];
+
             foreach ($patientClusters as $file) {
                 $cluster = $file->cluster;
-                $zip = new ZipArchive;
-                $zipFileName = "download_{$cluster}.zip";
-                $zipPath = storage_path("app/public/" . $zipFileName);
-                if ($zip->open($zipPath, ZipArchive::CREATE) === TRUE) {
-                    $zip->addFile(storage_path("app/public/{$file->folder_path}"), basename($file->folder_path));
-                    $zip->close();
-                }
+
+                // Calculate size of each file
                 $sizeInBytes = Storage::disk('public')->size($file->folder_path);
                 $sizeInKB = $sizeInBytes / 1024 / 1024;
                 $sizesByClusters[$cluster][] = $sizeInKB;
+
+                // Collect file dates
                 $datesByClusters[$cluster][] = $file->created_at->toDateTimeString();
-                $links[$cluster][] = Storage::disk('public')->url($file->folder_path);
-                $links[$cluster][] = asset($zipFileName);
+
+                // Collect MIME types and types
                 $clusterMime[$cluster][] = Storage::disk('public')->mimeType($file->folder_path);
                 $clusterType[$cluster][] = $file->type;
+
+                // Collect patient info
                 if (!isset($patients[$cluster][$file->patient_id])) {
                     $patientInfo = Patient::find($file->patient_id);
                     $patients[$cluster][$file->patient_id] = [
                         'nom' => $patientInfo->nom . ' ' . $patientInfo->prenom,
-
                     ];
                 }
             }
-            // Calculate total size for each cluster
+
+            // Prepare final response
             $Uploadsinfo = [];
             foreach ($sizesByClusters as $cluster => $sizes) {
                 $Uploadsinfo[$cluster] = [
                     'patientName' => array_values($patients[$cluster]),
-                    'type' =>  $clusterType[$cluster][0],
+                    'clusterName' => $cluster,
+                    'type' => $clusterType[$cluster][0],
                     'dates' => $datesByClusters[$cluster],
                     'totalSize' => array_sum($sizes),
-                    'mimeType' =>  $clusterMime[$cluster],
-                    'links' => url("storage/download_{$cluster}.zip")
+                    'mimeType' => $clusterMime[$cluster],
                 ];
             }
-            $response = response()->json(['data' => $Uploadsinfo], 201);
-            $response->header('Access-Control-Allow-Origin', '*');
-            $response->header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-            $response->header('Access-Control-Allow-Headers', 'Content-Type, X-Auth-Token, Authorization');
-            return $response;
+
+            // Return response
+            return response()->json(['data' => $Uploadsinfo], 200)
+                ->header('Access-Control-Allow-Origin', '*')
+                ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
+                ->header('Access-Control-Allow-Headers', 'Content-Type, X-Auth-Token, Authorization');
         } catch (\Throwable $th) {
             Log::error($th);
-            return response()->json(['error' => 'An error occurred while retrieving the file URLs'], 404);
+            return response()->json(['error' => 'An error occurred while retrieving the file URLs'], 500);
         }
     }
+
+    /* ZIp downlload function */
+    public function downloadZip(Request $request, $clusterId)
+    {
+        try {
+            $files = file_upload::where('cluster', $clusterId)->get();
+            if ($files->isEmpty()) {
+                return response()->json(['error' => 'No files found for this cluster'], 404);
+            }
+
+            $zip = new ZipArchive;
+            $zipFileName = "download_{$clusterId}.zip";
+            $zipPath = storage_path("app/public/" . $zipFileName);
+
+            if ($zip->open($zipPath, ZipArchive::CREATE) === TRUE) {
+                foreach ($files as $file) {
+                    $zip->addFile(storage_path("app/public/{$file->folder_path}"), basename($file->folder_path));
+                }
+                $zip->close();
+            }
+
+            return response()->download($zipPath)->deleteFileAfterSend();
+        } catch (\Throwable $th) {
+            Log::error($th);
+            return response()->json(['error' => 'Failed to generate ZIP file'], 500);
+        }
+    }
+
+
+
+
+
+
     /**
      * Update the specified resource in storage.
      */

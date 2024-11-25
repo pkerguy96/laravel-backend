@@ -7,17 +7,21 @@ use App\Http\Requests\StoreSupplierRequest;
 use App\Http\Resources\SupplierResource;
 use App\Http\Resources\SupplierResourceNameId;
 use App\Models\Supplier;
+use App\Traits\HasPermissionCheck;
 use App\Traits\HttpResponses;
 use Illuminate\Http\Request;
 
 class SupplierController extends Controller
 {
     use HttpResponses;
+    use HasPermissionCheck;
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
+        $this->authorizePermission(['superadmin', 'access_supplier']);
+
         $searchQuery = $request->input('searchQuery');
 
         // Default query to paginate suppliers
@@ -42,6 +46,8 @@ class SupplierController extends Controller
     }
     public function showAllSuppliers()
     {
+        $this->authorizePermission(['superadmin', 'access_supplier']);
+
         try {
             $suppliers =  Supplier::where('status', 'active')->get();
             return SupplierResourceNameId::collection($suppliers);
@@ -55,6 +61,8 @@ class SupplierController extends Controller
      */
     public function store(StoreSupplierRequest $request)
     {
+        $this->authorizePermission(['superadmin', 'add_supplier']);
+
         $supplier = Supplier::create($request->validated());
         return response()->json(['message' => 'Fournisseur créé avec succès.', 'data' => $supplier], 201);
     }
@@ -64,6 +72,8 @@ class SupplierController extends Controller
      */
     public function show(string $id)
     {
+        $this->authorizePermission(['superadmin', 'access_supplier']);
+
         $supplier = Supplier::find($id);
 
         if (!$supplier) {
@@ -77,6 +87,8 @@ class SupplierController extends Controller
      */
     public function update(StoreSupplierRequest $request, string $id)
     {
+        $this->authorizePermission(['superadmin', 'modify_supplier']);
+
         $supplier = Supplier::find($id);
 
         if (!$supplier) {
@@ -92,6 +104,8 @@ class SupplierController extends Controller
      */
     public function destroy(string $id)
     {
+        $this->authorizePermission(['superadmin', 'delete_supplier']);
+
         $supplier = Supplier::find($id);
 
         if (!$supplier) {

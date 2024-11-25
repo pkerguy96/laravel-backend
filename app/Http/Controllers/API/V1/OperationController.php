@@ -6,24 +6,25 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\OperationPaymentCollection;
 use Illuminate\Http\Request;
 use App\Models\Operation;
-use App\Models\operation_detail;
-use App\Models\payement;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use App\Http\Resources\OperationResource;
 use App\Http\Resources\PayementResource;
 use App\Http\Resources\treatementOperationCollection;
 use App\Http\Resources\XrayCollectionForNurse;
 use App\Models\Payment;
 use App\Models\Xray;
+use App\Traits\HasPermissionCheck;
 
 class OperationController extends Controller
 {
+    use HasPermissionCheck;
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
+        $this->authorizePermission(['superadmin', 'access_debt']);
+
         $searchQuery = $request->input('searchQuery');
         $perPage = $request->get('per_page', 20);
 
@@ -52,6 +53,8 @@ class OperationController extends Controller
     public function store(Request $request) {}
     public function getByOperationId($operationId)
     {
+
+
         $operation = Operation::with(['operationdetails', 'xray', 'payments', 'externalOperations'])
             ->where('id', $operationId)
             ->first();
@@ -68,6 +71,8 @@ class OperationController extends Controller
 
     public function recurringOperation(Request $request)
     {
+        $this->authorizePermission(['superadmin', 'access_operation_recurring']);
+
         $searchQuery = $request->input('searchQuery');
         $perPage = $request->get('per_page', 20); // Default items per page is 20
 
@@ -156,8 +161,8 @@ class OperationController extends Controller
      */
     public function destroy(string $id)
     {
-        Log::info($id);
-        $operation =  Operation::findorfail($id)->delete();
+
+        Operation::findorfail($id)->delete();
 
         return response()->json(['message' => 'Operation deleted successfully'], 204);
     }

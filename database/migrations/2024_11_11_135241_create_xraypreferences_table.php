@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('xraypreferences', function (Blueprint $table) {
             $table->id();
             $table->string('xray_type')->unique();
-
             $table->decimal('price', 8, 2)->nullable();
             $table->timestamps();
         });

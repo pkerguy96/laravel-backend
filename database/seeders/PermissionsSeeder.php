@@ -23,6 +23,9 @@ class PermissionsSeeder extends Seeder
             'delete_patient',
             'detail_patient',
 
+            // Reoccurring Operations Permissions
+            'access_operation_recurring',
+
             // Ordonance Permissions
             'access_ordonance',
             'insert_ordonance',
@@ -31,7 +34,6 @@ class PermissionsSeeder extends Seeder
 
             // Creance Permissions
             'access_creance',
-            'search_creance',
 
             // Debt Permissions
             'access_debt',
@@ -56,26 +58,23 @@ class PermissionsSeeder extends Seeder
             'delete_supplier',
             'modify_supplier',
 
-            // Stock Permissions
-            'access_stock',
-            'add_stock',
-            'delete_stock',
-            'modify_stock',
-
             // Product Permissions
             'access_product',
             'add_product',
             'delete_product',
             'modify_product',
+            'add_stock',
 
             // Historique Enter Permissions
             'access_historique_enter',
-            'add_historique_enter',
-            'delete_historique_enter',
             'modify_historique_enter',
+            'delete_historique_enter',
 
             // Historique Sortie Permissions
             'access_historique_sortie',
+            'delete_historique_sortie',
+            /* superadmin  */
+            'superadmin'
         ];
 
         // Create permissions
