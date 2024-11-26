@@ -39,9 +39,29 @@ class Xraypreferences extends Controller
     public function store(Request $request)
     {
         try {
+            $xrayPreference = Xraypreference::withTrashed()
+                ->where('xray_type', $request->xray_type)
+                ->first();
+
+            if ($xrayPreference && $xrayPreference->trashed()) {
+                // Restore the soft-deleted record
+                $xrayPreference->restore();
+
+                // Update price if provided in the request
+                $newPrice = $request->input('price');
+                if ($newPrice) {
+                    $xrayPreference->update(['price' => $newPrice]);
+                }
+
+                return $this->success(
+                    new XraypreferenceResource($xrayPreference),
+                    'X-ray preference restored successfully',
+                    200
+                );
+            }
             // Validate the request data
             $validated = $request->validate([
-                'xray_type' => 'required|string|max:191',
+                'xray_type' => 'required|unique:xraypreferences,xray_type,NULL,id,deleted_at,NULL',
                 'price' => 'required|numeric|min:0',
             ]);
 
@@ -65,7 +85,7 @@ class Xraypreferences extends Controller
             // Handle other exceptions
             return $this->error(
                 'Failed to create X-ray preference',
-                'error',
+                $e->getMessage(),
                 500
             );
         }

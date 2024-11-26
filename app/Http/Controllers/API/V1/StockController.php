@@ -8,6 +8,7 @@ use App\Http\Resources\ProductCollection;
 use App\Http\Resources\productoperationpage;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
+use App\Models\ProductSupplier;
 use App\Traits\HttpResponses;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -51,7 +52,8 @@ class StockController extends Controller
     {
         try {
             $validatedata = $request->validated();
-            Product::create($validatedata);
+            $product = Product::create($validatedata);
+
             return $this->success(null, "Produit inséré avec succès", 201);
         } catch (\Throwable $th) {
             return $this->error($th, "Une erreur est survenue lors de l'insertion du produit.", 500);

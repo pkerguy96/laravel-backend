@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\NotificationResource;
 use App\Models\Notification;
 use App\Traits\HttpResponses;
 use Illuminate\Http\Request;
@@ -19,7 +20,7 @@ class NotificationAlertController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return $this->success($notifications, 'success', 200);
+        return NotificationResource::collection($notifications);
     }
     public function markAsRead($id)
     {
