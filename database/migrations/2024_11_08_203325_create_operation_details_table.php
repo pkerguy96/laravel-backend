@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('operation_name')->nullable();
             $table->decimal('price', 10, 2);
             $table->string('type')->nullable();
+            $table->softDeletes();
             $table->timestamps();
             $table->foreign('operation_id')->references('id')->on('operations')->onDelete('cascade');
 

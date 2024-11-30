@@ -17,7 +17,9 @@ return new class extends Migration
             $table->decimal('total_cost', 10, 2);
             $table->boolean('is_paid');
             $table->text('note')->nullable();
+            $table->softDeletes();
             $table->timestamps();
+
             $table->foreign('patient_id')->references('id')->on('patients')->onDelete('cascade');
         });
     }

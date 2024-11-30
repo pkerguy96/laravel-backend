@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade'); // User to whom the notification is directed
             $table->string('title'); // Notification title
 
-            $table->text('message'); // Notification message
+            $table->text('message')->nullable();
             $table->boolean('is_read')->default(false);
             $table->string('type')->nullable();
             $table->string('target_id')->nullable();

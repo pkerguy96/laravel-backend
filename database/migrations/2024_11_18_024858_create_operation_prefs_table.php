@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('operation_type', 191); // Name of the operation
             $table->decimal('price', 8, 2); // Price of the operation
             $table->string('code', 50)->nullable(); // Optional operation code
+            $table->softDeletes();
             $table->timestamps(); // Created at and updated at timestamps
         });
     }

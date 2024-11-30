@@ -46,14 +46,23 @@ class User extends Authenticatable
     {
         return $this->hasMany(Notification::class, 'user_id');
     }
+
     protected static function booted()
     {
         static::creating(function ($user) {
             // Automatically assign the doctor role if the user has the doctor role type
-            if ($user->role === 'doctor') { // Assuming you have a 'role' column
-                $user->assignRole('doctor');
+            if ($user->role === 'doctor') {
+                // Assign the role using the sanctum guard
+                $role = \Spatie\Permission\Models\Role::where('name', 'doctor')
+                    ->where('guard_name', 'sanctum')
+                    ->first();
+
+                if ($role) {
+                    $user->assignRole($role);
+                } else {
+                    throw new \Exception('Role `doctor` with guard `sanctum` does not exist.');
+                }
             }
-            app()->make(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
         });
     }
 }

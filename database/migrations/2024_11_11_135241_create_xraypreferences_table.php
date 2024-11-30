@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('xray_type')->unique();
             $table->decimal('price', 8, 2)->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

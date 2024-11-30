@@ -107,7 +107,7 @@ class XrayController extends Controller
                 Notification::create([
                     'user_id' => $nurse->id,
                     'title' => 'Une radiographie est disponible',
-                    'message' => 'Une radiographie est disponible',
+
                     'is_read' => false,
                     'type' => 'xray',
                     "target_id" =>  $operation->id
@@ -217,10 +217,7 @@ class XrayController extends Controller
             }
 
             $operation->save(); // Save the updated operation details
-            Log::info('Operation updated', [
-                'treatment_isdone' => $operation->treatment_isdone,
-                'total_cost' => $operation->total_cost,
-            ]);
+
             $waiting =   WaitingRoom::where('patient_id', $request->patient_id)->first();
             if ($waiting) {
                 $waiting->delete();
@@ -232,6 +229,7 @@ class XrayController extends Controller
                 $productid = $consomable['consomable'];
                 $quantity = $consomable['qte'];
                 $product = Product::where('id', $productid)->first();
+
                 if ($product) {
                     if ($product->qte < $quantity) {
                         return response()->json([
@@ -248,6 +246,20 @@ class XrayController extends Controller
                         'product_id' => $product->id,
                         'quantity' => $quantity,
                     ]);
+
+                    if ($product->qte >= $product->min_stock) {
+                        $users = User::all();
+                        foreach ($users as $user) {
+                            Notification::create([
+                                'user_id' => $user->id,
+                                'title' => 'Alerte stock',
+                                'message' => "Le produit '{$product->product_name}' a la quantité minimale",
+                                'is_read' => false,
+                                'type' => 'stock',
+                                "target_id" =>  $product->id
+                            ]);
+                        }
+                    }
                 } else {
                     return response()->json([
                         'error' => "Consumable '{$product->product_name}' is out of stock."
@@ -261,7 +273,7 @@ class XrayController extends Controller
                 Notification::create([
                     'user_id' => $nurse->id,
                     'title' => 'Une facture est disponible',
-                    'message' => 'Une facture est disponible',
+
                     'is_read' => false,
                     'type' => 'payment',
                     "target_id" =>  $operation->id
@@ -387,7 +399,7 @@ class XrayController extends Controller
             Notification::create([
                 'user_id' => $nurse->id,
                 'title' => 'Une facture est disponible',
-                'message' => 'Une facture est disponible',
+
                 'is_read' => false,
                 'type' => 'payment',
                 "target_id" =>  $operation->id

@@ -22,10 +22,12 @@ return new class extends Migration
             $table->string('type')->default('xray');
             $table->text('note')->nullable();
             $table->decimal('price', 8, 2)->nullable();
+            $table->softDeletes();
             $table->timestamps();
-            $table->foreign('patient_id')->references('id')->on('patients')->onDelete('set null');
-            $table->foreign('operation_id')->references('id')->on('operations')->onDelete('set null');
-            $table->foreign('xray_preference_id')->references('id')->on('xraypreferences')->onDelete('set null');
+
+            $table->foreign('patient_id')->references('id')->on('patients')->onDelete('cascade');
+            $table->foreign('operation_id')->references('id')->on('operations')->onDelete('cascade');
+            $table->foreign('xray_preference_id')->references('id')->on('xraypreferences')->onDelete('cascade');
         });
     }
 
