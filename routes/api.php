@@ -70,6 +70,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     route::delete('decrementPatient/{id}', [WaitingRoomController::class, 'decrementPatient']);
     route::get('resetPatientCounter', [WaitingRoomController::class, 'resetPatientCounter']);
     route::get('GetWaitingList', [WaitingRoomController::class, 'GetWaitingList']);
+    route::get('tvwaitinglist', [WaitingRoomController::class, 'tvwaitinglist']);
     /* Supplier routes */
     route::apiResource('Supplier', SupplierController::class);
 

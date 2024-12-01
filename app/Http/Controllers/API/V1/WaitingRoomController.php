@@ -73,7 +73,14 @@ class WaitingRoomController extends Controller
             return $this->error($th->getMessage(), 'oops', 500);
         }
     }
+    public function tvwaitinglist()
+    {
+        $waitingListQuery = WaitingRoom::with('patient')
 
+            ->orderBy('entry_time', 'asc')->get();
+
+        return new WaitingListCollection($waitingListQuery);
+    }
     public function resetPatientCounter()
     {
         try {
@@ -126,7 +133,7 @@ class WaitingRoomController extends Controller
     {
         $searchQuery = $request->input('searchQuery'); // Retrieve search query from request
 
-        $waitingListQuery = WaitingRoom::with('patient') // Include 'patient' relationship
+        $waitingListQuery = WaitingRoom::with('patient')->where('status', '!=', 'completed') // Include 'patient' relationship
             ->orderByRaw("FIELD(status, 'current', 'pending', 'waiting')") // Custom order for statuses
             ->orderBy('entry_time', 'asc'); // Then order by entry_time
 

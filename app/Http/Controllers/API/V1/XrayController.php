@@ -92,11 +92,11 @@ class XrayController extends Controller
             $waiting =   WaitingRoom::where('patient_id', $request->patient_id)->first();
             if ($waiting) {
                 $waiting->update([
-                    'status' => 'pending'
+                    'status' => 'current'
                 ]);
             } else {
                 WaitingRoom::create([
-                    'status' => 'pending',
+                    'status' => 'current',
                     'patient_id'
                     => $request->patient_id,
                     'entry_time' => Carbon::now()
@@ -220,7 +220,9 @@ class XrayController extends Controller
 
             $waiting =   WaitingRoom::where('patient_id', $request->patient_id)->first();
             if ($waiting) {
-                $waiting->delete();
+                $waiting->update([
+                    'status' => 'completed'
+                ]);
             }
 
             // Step 9: Handle consumables
@@ -390,7 +392,9 @@ class XrayController extends Controller
         $operation->save();
         $waiting =   WaitingRoom::where('patient_id', $request->patient_id)->first();
         if ($waiting) {
-            $waiting->delete();
+            $waiting->update([
+                'status' => 'completed'
+            ]);
         }
         $nurses = User::where('role', 'nurse')->get();
 

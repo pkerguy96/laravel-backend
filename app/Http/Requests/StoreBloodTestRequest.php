@@ -41,8 +41,8 @@ class StoreBloodTestRequest extends FormRequest
         $this->merge([
             'blood_test' => isset($this->blood_test) && is_array($this->blood_test)
                 ? implode(',', $this->blood_test)
-                : $this->blood_test,
-            'xray_type' => isset($this->xray_type) && is_array($this->xray_type)
+                : $this->blood_test
+            /* 'xray_type' => isset($this->xray_type) && is_array($this->xray_type)
                 ? implode(',', $this->xray_type)
                 : $this->xray_type,
             'view_type' => isset($this->view_type) && is_array($this->view_type)
@@ -50,7 +50,7 @@ class StoreBloodTestRequest extends FormRequest
                 : $this->view_type,
             'body_side' => isset($this->body_side) && is_array($this->body_side)
                 ? implode(',', $this->body_side)
-                : $this->body_side,
+                : $this->body_side, */
         ]);
     }
 }
