@@ -25,9 +25,9 @@ return new class extends Migration
             $table->softDeletes();
             $table->timestamps();
 
-            $table->foreign('patient_id')->references('id')->on('patients')->onDelete('cascade');
+            $table->foreign('patient_id')->references('id')->on('patients');
             $table->foreign('operation_id')->references('id')->on('operations')->onDelete('cascade');
-            $table->foreign('xray_preference_id')->references('id')->on('xraypreferences')->onDelete('cascade');
+            $table->foreign('xray_preference_id')->references('id')->on('xraypreferences');
         });
     }
 

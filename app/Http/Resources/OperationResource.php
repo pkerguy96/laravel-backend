@@ -14,10 +14,11 @@ class OperationResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        /*    $this->externalOperations->patient = $this->patient; */
         return [
+            'patient_id' =>  $this->patient_id ?? null,
+            'patient_name' =>  $this->patient ? ($this->patient->nom . ' ' . $this->patient->prenom) : 'No patient',
 
-            'patient_id' => $this->patient_id,
-            'patient_name' => $this->patient->nom . ' ' . $this->patient->prenom,
             'operation_details' => OperationDetailResource::collection($this->operationdetails),
             'xrays' => OperationXrayPayments::collection($this->xray),
             'externalOperation' => hospitaloperationresource::collection($this->externalOperations),
@@ -25,7 +26,6 @@ class OperationResource extends JsonResource
             'total_cost' => $this->total_cost,
             'is_paid' => $this->is_paid,
             'note' => $this->note,
-
         ];
     }
 }

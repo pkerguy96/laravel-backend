@@ -13,7 +13,7 @@ class Operation extends Model
     use HasFactory;
     public function patient()
     {
-        return $this->belongsTo(Patient::class, 'patient_id');
+        return $this->belongsTo(Patient::class, 'patient_id')->withTrashed();
     }
     public function operationdetails()
     {

@@ -13,6 +13,7 @@ use App\Http\Resources\XrayCollectionForNurse;
 use App\Models\Payment;
 use App\Models\Xray;
 use App\Traits\HasPermissionCheck;
+use Illuminate\Support\Facades\Log;
 
 class OperationController extends Controller
 {
@@ -29,8 +30,13 @@ class OperationController extends Controller
         $perPage = $request->get('per_page', 20);
 
         // Fetch operations with relationships and apply search if necessary
-        $operationsQuery = Operation::with(['patient', 'payments', 'xray'])
-            ->orderBy('id', 'desc');
+        $operationsQuery = Operation::with([
+            'patient' => function ($query) {
+                $query->withTrashed(); // Include soft-deleted patients
+            },
+            'payments',
+            'xray',
+        ])->orderBy('id', 'desc');
 
         if (!empty($searchQuery)) {
             // Add search conditions for operations or related models
@@ -55,13 +61,20 @@ class OperationController extends Controller
     {
 
 
-        $operation = Operation::with(['operationdetails', 'xray', 'payments', 'externalOperations', 'patient:id,nom,prenom'])
-            ->where('id', $operationId)
-            ->first();
+        $operation = Operation::with([
+            'operationdetails',
+            'xray',
+            'payments',
+            'externalOperations',
+            'patient' => function ($query) {
+                $query->withTrashed()->select('id', 'nom', 'prenom'); // Select only id, nom, and prenom
+            },
+        ])->where('id', $operationId)->first();
 
         if (!$operation) {
             return response()->json(['error' => 'Operation not found'], 404);
         }
+        Log::info($operation->toArray());
 
         return new OperationResource($operation);
     }
@@ -78,12 +91,17 @@ class OperationController extends Controller
 
         $operationsQuery = Operation::where('treatment_nbr', '>', 0)
             ->where('treatment_isdone', 0)
-            ->with(['operationdetails' => function ($query) {
-                $query->select('operation_id', 'operation_name'); // Include operation_id
-            }])
-            ->with(['xray' => function ($query) {
-                $query->select('operation_id', 'xray_type'); // Include operation_id
-            }])
+            ->with([
+                'operationdetails' => function ($query) {
+                    $query->select('operation_id', 'operation_name'); // Include operation_id
+                },
+                'xray' => function ($query) {
+                    $query->select('operation_id', 'xray_type'); // Include operation_id
+                },
+                'patient' => function ($query) {
+                    $query->withTrashed()->select('id', 'nom', 'prenom'); // Include trashed patients
+                },
+            ])
             ->orderBy('id', 'desc');
 
         // Apply search filter if a search query is provided

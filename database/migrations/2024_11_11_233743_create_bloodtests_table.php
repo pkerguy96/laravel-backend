@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('blood_test')->nullable();
             $table->timestamps();
             $table->foreign('operation_id')->references('id')->on('operations')->onDelete('cascade');
-            $table->foreign('patient_id')->references('id')->on('patients')->onDelete('cascade');
+            $table->foreign('patient_id')->references('id')->on('patients');
         });
     }
 

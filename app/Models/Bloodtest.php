@@ -15,6 +15,6 @@ class Bloodtest extends Model
     }
     public function Patient()
     {
-        return $this->belongsTo(Patient::class, 'patient_id');
+        return $this->belongsTo(Patient::class, 'patient_id')->withTrashed();
     }
 }

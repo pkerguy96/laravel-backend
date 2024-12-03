@@ -29,10 +29,11 @@ class OrdonanceController extends Controller
         $searchQuery = $request->input('searchQuery'); // Get the search query from the request
         $perPage = $request->get('per_page', 20); // Default to 20 items per page if not specified
 
-        // Base query for Ordonance with related Patient details
         $ordonancesQuery = Ordonance::select('id', 'patient_id', 'date')
             ->with([
-                'Patient:id,nom,prenom' // Load only the required Patient fields
+                'Patient' => function ($query) {
+                    $query->withTrashed()->select('id', 'nom', 'prenom'); // Include soft-deleted patients
+                },
             ])
             ->orderBy('id', 'desc');
 

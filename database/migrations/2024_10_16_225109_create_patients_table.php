@@ -24,6 +24,7 @@ return new class extends Migration
             $table->text('note')->nullable();
             $table->text('p_folder')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

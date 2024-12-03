@@ -17,7 +17,6 @@ class OrdonanceCollection extends ResourceCollection
         return $this->collection->map(function ($ordonance) {
             return [
                 'id' => $ordonance->id,
-
                 'patient_id' => $ordonance->patient_id,
                 'date' => $ordonance->date,
                 'patient_name' => trim(optional($ordonance->patient)->nom . ' ' . optional($ordonance->patient)->prenom),

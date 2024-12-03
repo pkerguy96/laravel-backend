@@ -22,7 +22,12 @@ class HospitalOperationsController extends Controller
         $perPage = $request->get('per_page', 20);
 
         // Base query with relationships
-        $query = OutsourceOperation::with('hospital', 'patient');
+        $query = OutsourceOperation::with([
+            'hospital',
+            'patient' => function ($query) {
+                $query->withTrashed(); // Include both deleted and non-deleted patients
+            },
+        ]);
 
         // Apply search filters if searchQuery is provided
         if (!empty($searchQuery)) {
