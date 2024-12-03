@@ -20,6 +20,7 @@ class OrdonanceCollection extends ResourceCollection
                 'patient_id' => $ordonance->patient_id,
                 'date' => $ordonance->date,
                 'patient_name' => trim(optional($ordonance->patient)->nom . ' ' . optional($ordonance->patient)->prenom),
+                'patient_deleted_at' => $ordonance->patient->deleted_at,
             ];
         });
     }
