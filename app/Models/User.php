@@ -50,7 +50,8 @@ class User extends Authenticatable
     protected static function booted()
     {
         static::creating(function ($user) {
-            // Automatically assign the doctor role if the user has the doctor role type
+
+
             if ($user->role === 'doctor') {
                 // Assign the role using the sanctum guard
                 $role = \Spatie\Permission\Models\Role::where('name', 'doctor')
@@ -64,5 +65,13 @@ class User extends Authenticatable
                 }
             }
         });
+        static::created(
+            function ($user) {
+                UserPreference::create([
+                    'doctor_id' => $user->id,
+                    'kpi_date' => $user->role === 'doctor' ?  'year' : 'day',
+                ]);
+            }
+        );
     }
 }

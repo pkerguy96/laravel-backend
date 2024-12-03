@@ -23,7 +23,7 @@ class OperationController extends Controller
      */
     public function index(Request $request)
     {
-        $this->authorizePermission(['superadmin', 'access_debt']);
+        $this->authorizePermission(['superadmin', 'access_debt', 'insert_debt', 'delete_debt']);
 
         $searchQuery = $request->input('searchQuery');
         $perPage = $request->get('per_page', 20);
@@ -55,7 +55,7 @@ class OperationController extends Controller
     {
 
 
-        $operation = Operation::with(['operationdetails', 'xray', 'payments', 'externalOperations'])
+        $operation = Operation::with(['operationdetails', 'xray', 'payments', 'externalOperations', 'patient:id,nom,prenom'])
             ->where('id', $operationId)
             ->first();
 
@@ -117,11 +117,14 @@ class OperationController extends Controller
         try {
 
             $operation = Operation::findorfail($id);
-
+            $amountPaid = (float)$request->amount_paid;
+            if ($amountPaid < 0) {
+                return response()->json(['error' => 'Le montant payé ne peut pas être un nombre négatif.'], 400);
+            }
             if ($operation) {
                 $sumAmountPaid = (float)Payment::where('operation_id', $id)->sum('amount_paid');
                 $totalCost = (float)$operation->total_cost;
-                $amountPaid = (float)$request->amount_paid;
+
 
                 if (!isset($amountPaid) || empty($amountPaid)) {
                     return response()->json(['error' => 'Le montant payé est requis'], 400);

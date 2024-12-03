@@ -17,13 +17,16 @@ class NotificationAlertController extends Controller
     public function index()
     {
         $notifications = Notification::where('user_id', auth()->id())
+            ->whereDate('created_at', now()->toDateString()) // Filter for today's date
             ->orderBy('created_at', 'desc')
             ->get();
 
         return NotificationResource::collection($notifications);
     }
+
     public function markAsRead($id)
     {
+
         $notification = Notification::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
         $notification->is_read = true;
         $notification->save();

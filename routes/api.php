@@ -24,6 +24,7 @@ use App\Http\Controllers\API\V1\PermissionController;
 use App\Http\Controllers\API\V1\ProductConsumableController;
 use App\Http\Controllers\API\V1\ProductSupplierController;
 use App\Http\Controllers\API\V1\SupplierController;
+use App\Http\Controllers\API\V1\UserPreferenceController;
 use App\Http\Controllers\API\V1\Xraypreferences;
 use App\Models\OperationPref;
 use App\Models\Ordonance;
@@ -43,6 +44,7 @@ route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1'], f
 
     route::post('/login', [AuthController::class, 'login']);
     Route::post('testpatientstore', [PatientController::class, 'testpatientstore']);
+    route::get('tvwaitinglist', [WaitingRoomController::class, 'tvwaitinglist']);
 });
 
 
@@ -61,7 +63,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
 
 
 
-
+    route::post('DashboardKpiUserPref', [UserPreferenceController::class, 'DashboardKpiUserPref']);
 
     /* waiting room */
     route::apiResource('Waitingroom', WaitingRoomController::class);
@@ -70,7 +72,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     route::delete('decrementPatient/{id}', [WaitingRoomController::class, 'decrementPatient']);
     route::get('resetPatientCounter', [WaitingRoomController::class, 'resetPatientCounter']);
     route::get('GetWaitingList', [WaitingRoomController::class, 'GetWaitingList']);
-    route::get('tvwaitinglist', [WaitingRoomController::class, 'tvwaitinglist']);
+
     /* Supplier routes */
     route::apiResource('Supplier', SupplierController::class);
 
@@ -156,6 +158,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     Route::get('retrieveFromCashier', [DashboardKpisController::class, 'retrieveFromCashier']);
     Route::get('OnlyCashierNumber', [DashboardKpisController::class, 'OnlyCashierNumber']);
     Route::post('PatientsDebt', [DashboardKpisController::class, 'PatientsDebt']);
+    Route::get('countPatientsByReferral', [DashboardKpisController::class, 'countPatientsByReferral']);
     /*  route::post('DashboardKpiUserPref', [UserPreferenceController::class, 'DashboardKpiUserPref']);
     route::post('OperationUserPref', [UserPreferenceController::class, 'OperationUserPref']);
     route::get('getOperationPrefs', [UserPreferenceController::class, 'getOperationPrefs']);

@@ -103,11 +103,12 @@ class XrayController extends Controller
                 ]);
             }
             $nurses = User::where('role', 'nurse')->get();
+            $patient = Patient::where('id', $request->input('patient_id'))->first(['nom', 'prenom']);
+
             foreach ($nurses as $nurse) {
                 Notification::create([
                     'user_id' => $nurse->id,
-                    'title' => 'Une radiographie est disponible',
-
+                    'title' => 'Une radiographie est disponible de ' . $patient->nom . ' ' . $patient->prenom,
                     'is_read' => false,
                     'type' => 'xray',
                     "target_id" =>  $operation->id
@@ -156,17 +157,17 @@ class XrayController extends Controller
     {
         try {
             // Step 1: Parse incoming x-ray data from rows
-            $incomingXrays = collect($request->input('rows')); // assume all items are x-rays
-            Log::info('Request data', ['data' => $request->all()]);
+            $incomingXrays = collect($request->input('rows'));
+
 
             if ($incomingXrays->isEmpty()) {
                 return response()->json(['message' => 'No x-ray data found in the request.'], 400);
             }
 
-            // Step 2: Fetch the operation and its existing x-rays
+
             $operation = Operation::findOrFail($id); // Fetch the operation to adjust total_cost
             $existingXrays = Xray::where('operation_id', $id)->get(); // Fetch existing x-rays for the operation
-            Log::info('Existing X-rays', ['XRAYS' => $existingXrays]);
+
 
             // Step 3: Identify deleted, new, and updated x-rays
             $incomingXrayIds = $incomingXrays->pluck('id')->filter(); // Get IDs of incoming x-rays, filter out nulls for new items
@@ -176,9 +177,9 @@ class XrayController extends Controller
 
             // Step 4: Adjust the total cost based on deleted X-rays
             $deletedXrayTotalPrice = $deletedXrays->sum('price'); // Sum the price of deleted x-rays
-            $operation->total_cost -= $deletedXrayTotalPrice; // Deduct deleted x-rays' price from total_cost
+            /*  $operation->total_cost -= $deletedXrayTotalPrice; */ // Deduct deleted x-rays' price from total_cost
             Log::info('Deleted X-rays total price', ['total_price' => $deletedXrayTotalPrice]); // Log the deducted price
-
+            $operation->total_cost = 0;
             // Step 5: Delete the identified x-rays
             Xray::destroy($deletedXrays->pluck('id')->toArray());
             Log::info('Deleted X-rays', ['ids' => $deletedXrays->pluck('id')->toArray()]);
@@ -190,21 +191,23 @@ class XrayController extends Controller
                     'xray_type' => $xray['xray_type'],
                 ]);
                 Log::info('Updated X-ray', ['id' => $xray['id'], 'data' => $xray]);
+                $operation->total_cost += $xray['price'];
             }
 
             // Step 7: Add new x-rays and calculate their total price
-            $newXrayTotalPrice = 0; // Initialize total price for new x-rays
+            /*       $newXrayTotalPrice = 0; */ // Initialize total price for new x-rays
             foreach ($newXrays as $xray) {
                 operation_detail::create([
                     'operation_id' => $id,
                     'operation_name' => $xray['xray_type'],
                     'price' => $xray['price'],
                 ]);
-                $newXrayTotalPrice += $xray['price']; // Add new x-ray's price to the total
+                /*  $newXrayTotalPrice += $xray['price']; */ // Add new x-ray's price to the total
                 Log::info('Created new X-ray', ['data' => $xray]);
+                $operation->total_cost += $xray['price'];
             }
-            $operation->total_cost += $newXrayTotalPrice; // Add new x-rays' price to the operation's total cost
-            Log::info('New X-rays total price', ['total_price' => $newXrayTotalPrice]); // Log the added price
+            /*    $operation->total_cost += $newXrayTotalPrice; */ // Add new x-rays' price to the operation's total cost
+            /*  Log::info('New X-rays total price', ['total_price' => $newXrayTotalPrice]); */ // Log the added price
 
             // Step 8: Update the operation's treatment and total cost
             $isDone = $request->input('treatment_isdone', 0); // Get treatment_isdone from the request
@@ -269,13 +272,12 @@ class XrayController extends Controller
                 }
             }
             $nurses = User::where('role', 'nurse')->get();
-
+            $patient = Patient::where('id', $request->input('patient_id'))->first(['nom', 'prenom']);
             // Create notifications for each nurse
             foreach ($nurses as $nurse) {
                 Notification::create([
                     'user_id' => $nurse->id,
-                    'title' => 'Une facture est disponible',
-
+                    'title' => 'Une facture est disponible de ' . $patient->nom . ' ' . $patient->prenom,
                     'is_read' => false,
                     'type' => 'payment',
                     "target_id" =>  $operation->id
@@ -301,8 +303,6 @@ class XrayController extends Controller
 
         ]);
 
-        $id = $operation->id;
-        $operation = Operation::findOrFail($id);
 
         // Step 2: Handle treatment status
         $isDone = $request->input('treatment_isdone', 0);
@@ -320,7 +320,7 @@ class XrayController extends Controller
 
         foreach ($incomingXrays as $xray) {
             operation_detail::create([
-                'operation_id' => $id,
+                'operation_id' => $operation->id,
                 'operation_name' => $xray['xray_type'],
                 'price' => $xray['price'],
             ]);
@@ -397,13 +397,13 @@ class XrayController extends Controller
             ]);
         }
         $nurses = User::where('role', 'nurse')->get();
+        $patient = Patient::where('id', $request->input('patient_id'))->first(['nom', 'prenom']);
 
         // Create notifications for each nurse
         foreach ($nurses as $nurse) {
             Notification::create([
                 'user_id' => $nurse->id,
-                'title' => 'Une facture est disponible',
-
+                'title' => 'Une facture est disponible de ' . $patient->nom . ' ' . $patient->prenom,
                 'is_read' => false,
                 'type' => 'payment',
                 "target_id" =>  $operation->id

@@ -12,13 +12,17 @@ use App\Models\Payment;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use App\Models\UserPreference;
 
 class DashboardKpisController extends Controller
 {
     public function getAppointments()
     {
+        $user = Auth::user();
+        $userPreference = UserPreference::where('doctor_id', $user->id)->pluck('kpi_date')->first();
+        $id = ($user->role === 'doctor') ? $user->id : $user->doctor_id;
 
-        $userPreference = 'monthly';/* UserPreference::where('doctor_id', $user->id)->pluck('kpi_date')->first(); */
 
         $startDate = null;
         $endDate = null;
@@ -48,7 +52,9 @@ class DashboardKpisController extends Controller
     public function getCanceledAppointments()
     {
 
-        $userPreference = 'monthly';
+        $user = Auth::user();
+        $userPreference = UserPreference::where('doctor_id', $user->id)->pluck('kpi_date')->first();
+        $id = ($user->role === 'doctor') ? $user->id : $user->doctor_id;
 
         $startDate = null;
         $endDate = null;
@@ -76,6 +82,16 @@ class DashboardKpisController extends Controller
     public function getDates($type)
     {
         switch ($type) {
+            case "day":
+                $hours = [];
+                for ($i = 8; $i <= 18; $i++) { // Loop from 8 AM (8) to 6 PM (18)
+                    $hours[sprintf('%02d:00', $i)] = 0;
+                }
+                return [
+                    Carbon::now()->startOfDay(),
+                    Carbon::now()->endOfDay(),
+                    $hours
+                ];
             case "week":
                 return [
                     Carbon::now()->startOfWeek(Carbon::MONDAY),
@@ -141,6 +157,8 @@ class DashboardKpisController extends Controller
     public function groupKey($model, $type)
     {
         switch ($type) {
+            case 'day':
+                return $model->created_at->format('H:00');
             case 'week':
                 return __($model->created_at->format('l'));
             case 'month':
@@ -153,7 +171,8 @@ class DashboardKpisController extends Controller
     public function getMonthlyCanceledAppointments()
     {
 
-        $userPreference = 'month';
+        $user = Auth::user();
+        $userPreference = UserPreference::where('doctor_id', $user->id)->pluck('kpi_date')->first();
 
         [$start, $end, $columns] = $this->getDates($userPreference);
         Appointment::withTrashed()->whereBetween('created_at', [$start, $end])->onlyTrashed()->get()
@@ -173,7 +192,8 @@ class DashboardKpisController extends Controller
     public function getMonthlyAppointments()
     {
 
-        $userPreference = 'month';
+        $user = Auth::user();
+        $userPreference = UserPreference::where('doctor_id', $user->id)->pluck('kpi_date')->first();
 
 
         [$start, $end, $columns] = $this->getDates($userPreference);
@@ -193,7 +213,8 @@ class DashboardKpisController extends Controller
     }
     public function getTotalRevenue()
     {
-        $userPreference = 'month';
+        $user = Auth::user();
+        $userPreference = UserPreference::where('doctor_id', $user->id)->pluck('kpi_date')->first();
 
         [$currentStart, $currentEnd, $currentColumns] = $this->getDates($userPreference);
 
@@ -204,6 +225,10 @@ class DashboardKpisController extends Controller
         }, $currentColumns);
 
         switch ($userPreference) {
+            case 'day':
+                $oldStart = Carbon::parse($currentStart)->subDay(1);
+                $oldEnd = Carbon::parse($currentEnd)->subDay(1);
+                break;
             case 'week':
                 $oldStart = Carbon::parse($currentStart)->subWeek(1);
                 $oldEnd = Carbon::parse($currentEnd)->subWeek(1);
@@ -249,8 +274,8 @@ class DashboardKpisController extends Controller
     }
     public function OnlyCashierNumber()
     {
-        $userPreference = 'month';
-
+        $user = Auth::user();
+        $userPreference = UserPreference::where('doctor_id', $user->id)->pluck('kpi_date')->first();
 
         [$start, $end, $columns] = $this->getDates($userPreference);
 
@@ -264,7 +289,8 @@ class DashboardKpisController extends Controller
     public function retrieveFromCashier()
     {
 
-        $userPreference = 'month';
+        $user = Auth::user();
+        $userPreference = UserPreference::where('doctor_id', $user->id)->pluck('kpi_date')->first();
 
         [$start, $end, $columns] = $this->getDates($userPreference);
         /* 
@@ -322,6 +348,32 @@ class DashboardKpisController extends Controller
         $data = Patient::count();
         return response()->json(['data' => $data]);
     }
+    public function countPatientsByReferral()
+    {
+        $patients = Patient::select('referral')->get();
+
+        $referralCounts = [];
+
+        foreach ($patients as $patient) {
+            if (isset($patient->referral)) {
+                foreach ($patient->referral as $referral) {
+                    if ($referral) {
+                        if (!isset($referralCounts[$referral])) {
+                            $referralCounts[$referral] = 0;
+                        }
+                        $referralCounts[$referral]++;
+                    }
+                }
+            }
+        }
+
+        // Sort referrals by count (optional)
+        arsort($referralCounts);
+
+        return response()->json(['data' => $referralCounts]);
+    }
+
+
     /* public function appointmentKpipeak()
     {
        

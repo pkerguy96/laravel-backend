@@ -17,6 +17,7 @@ class OperationResource extends JsonResource
         return [
 
             'patient_id' => $this->patient_id,
+            'patient_name' => $this->patient->nom . ' ' . $this->patient->prenom,
             'operation_details' => OperationDetailResource::collection($this->operationdetails),
             'xrays' => OperationXrayPayments::collection($this->xray),
             'externalOperation' => hospitaloperationresource::collection($this->externalOperations),

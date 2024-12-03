@@ -132,7 +132,7 @@ class WaitingRoomController extends Controller
     public function GetWaitingList(Request $request)
     {
         $searchQuery = $request->input('searchQuery'); // Retrieve search query from request
-
+        $count = WaitingRoom::where('status', 'completed')->count();
         $waitingListQuery = WaitingRoom::with('patient')->where('status', '!=', 'completed') // Include 'patient' relationship
             ->orderByRaw("FIELD(status, 'current', 'pending', 'waiting')") // Custom order for statuses
             ->orderBy('entry_time', 'asc'); // Then order by entry_time
@@ -148,6 +148,12 @@ class WaitingRoomController extends Controller
 
         // Apply pagination after filtering and ordering
         $waitingList = $waitingListQuery->paginate($request->get('per_page', 20));
+
+        // Modify the collection inside the paginator
+        $waitingList->getCollection()->transform(function ($item) use ($count) {
+            $item->count = $count; // Add the count property to each item
+            return $item;
+        });
 
         return new WaitingListCollection($waitingList);
     }

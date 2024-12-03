@@ -22,7 +22,7 @@ class PatientController extends Controller
     use HasPermissionCheck;
     public function index(Request $request)
     {
-        $this->authorizePermission(['superadmin', 'access_patient']);
+        $this->authorizePermission(['superadmin', 'access_patient', 'insert_patient', 'update_patient', 'delete_patient', 'detail_patient']);
         $searchQuery = $request->input('searchQuery');
         $patients =   Patient::with('appointments', 'Ordonance')
             ->orderBy('id', 'desc')
@@ -49,7 +49,7 @@ class PatientController extends Controller
      */
     public function store(StorePatientRequest $request)
     {
-        $this->authorizePermission(['superadmin', 'insert_patient']);
+        $this->authorizePermission(['superadmin', 'insert_patient', 'access_patient']);
 
         try {
 
@@ -73,7 +73,7 @@ class PatientController extends Controller
 
     public function patientDetails(string $id)
     {
-        $this->authorizePermission(['superadmin', 'detail_patient']);
+        $this->authorizePermission(['superadmin', 'detail_patient', 'access_patient']);
 
         return  new PatientDetailResource(Patient::with('appointments', 'operations', 'operations.operationdetails', 'Xray', 'Ordonance')->where('id', $id)->first());
     }
@@ -107,7 +107,7 @@ class PatientController extends Controller
     {
 
 
-        $this->authorizePermission(['superadmin', 'update_patient']);
+        $this->authorizePermission(['superadmin', 'update_patient', 'access_patient']);
 
         $patient = Patient::findOrFail($id);
 
@@ -134,7 +134,7 @@ class PatientController extends Controller
      */
     public function destroy(string $id)
     {
-        $this->authorizePermission(['superadmin', 'delete_patient']);
+        $this->authorizePermission(['superadmin', 'delete_patient', 'access_patient']);
 
         Patient::findorfail($id)->delete();
         return response()->json(['message' => 'patient deleted successfully'], 204);

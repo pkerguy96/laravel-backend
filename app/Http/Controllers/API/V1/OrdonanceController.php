@@ -24,7 +24,7 @@ class OrdonanceController extends Controller
      */
     public function index(Request $request)
     {
-        $this->authorizePermission(['superadmin', 'access_ordonance']);
+        $this->authorizePermission(['superadmin', 'access_ordonance', 'insert_ordonance', 'update_ordonance', 'delete_ordonance']);
 
         $searchQuery = $request->input('searchQuery'); // Get the search query from the request
         $perPage = $request->get('per_page', 20); // Default to 20 items per page if not specified
@@ -58,7 +58,7 @@ class OrdonanceController extends Controller
      */
     public function store(Request $request)
     {
-        $this->authorizePermission(['superadmin', 'insert_ordonance']);
+        $this->authorizePermission(['superadmin', 'insert_ordonance', 'access_ordonance']);
 
         try {
 
@@ -121,7 +121,7 @@ class OrdonanceController extends Controller
      */
     public function show(string $id)
     {
-        $this->authorizePermission(['superadmin', 'access_ordonance']);
+        $this->authorizePermission(['superadmin', 'insert_ordonance', 'update_ordonance', 'delete_ordonance', 'access_ordonance']);
 
         $data = Ordonance::with('OrdonanceDetails', 'Patient')->where('id', $id)->first();
         return response()->json(['data' => $data], 200);
@@ -132,7 +132,7 @@ class OrdonanceController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $this->authorizePermission(['superadmin', 'update_ordonance']);
+        $this->authorizePermission(['superadmin', 'update_ordonance', 'access_ordonance']);
 
         try {
 
@@ -182,7 +182,7 @@ class OrdonanceController extends Controller
      */
     public function destroy(string $id)
     {
-        $this->authorizePermission(['superadmin', 'delete_ordonance']);
+        $this->authorizePermission(['superadmin', 'delete_ordonance', 'access_ordonance']);
 
         try {
 

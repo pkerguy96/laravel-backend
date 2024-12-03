@@ -73,6 +73,9 @@ class PermissionsSeeder extends Seeder
             // Historique Sortie Permissions
             'access_historique_sortie',
             'delete_historique_sortie',
+            //settings
+            'access_op_settings',
+            'access_xray_settings',
             /* superadmin  */
             'superadmin'
         ];

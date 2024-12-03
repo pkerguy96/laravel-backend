@@ -12,6 +12,7 @@ class FinancialController extends Controller
 {
     public function PatientsDebt(Request $request)
     {
+
         // Extract pagination and filtering parameters
         $searchQuery = $request->input('searchQuery', '');
         $perPage = $request->get('per_page', 20); // Default to 20 items per page if not specified
