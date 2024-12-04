@@ -50,6 +50,7 @@ route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1'], f
 
 Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'middleware' => ['auth:sanctum']], function () {
     Route::get('Admin/logout', [AuthController::class, 'Logout']);
+    /*     Route::get('getpicture', [AdminController::class, 'getpicture']); */
     Route::post('Admin/update/profile', [AdminController::class, 'ModifyProfile']);
 
     Route::get('patientDetails/{id}', [PatientController::class, 'patientDetails']);

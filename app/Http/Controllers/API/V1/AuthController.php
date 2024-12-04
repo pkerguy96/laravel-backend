@@ -44,7 +44,7 @@ class AuthController extends Controller
             $token = $user->createToken('Api token of ' . $user->nom)->plainTextToken;
             $url = null;
             if ($user->profile_picture) {
-                $url = asset("storage/profile_pictures/"  . $user->profile_picture);
+                $url = url('storage/profile_pictures/' . $user->profile_picture);
             }
             $permissionNames = [];
             if ($user->hasRole('doctor')) {

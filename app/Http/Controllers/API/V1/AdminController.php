@@ -83,7 +83,7 @@ class AdminController extends Controller
             return response()->json([
                 'message' => 'Profile updated successfully',
                 'data' => $user,
-                'profile' => asset('storage/profile_pictures/' . $user->profile_picture),
+                'profile' => url('storage/profile_pictures/' . $user->profile_picture),
             ], 200);
         } catch (\Throwable $th) {
             return response()->json([
@@ -93,15 +93,16 @@ class AdminController extends Controller
     }
 
 
-    public function getpicture()
+    /*   public function getpicture()
     {
         $user = Auth()->user();
         if (!$user || !$user->profile_picture) {
             return response()->json(['message' => 'No profile picture was found']);
         } else {
 
-            $url = Storage::disk('public')->url($user->profile_picture);
+
+            $url =  url('storage/profile_pictures/' . $user->profile_picture);
             return response()->json(['url' => $url]);
         }
-    }
+    } */
 }
