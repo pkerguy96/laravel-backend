@@ -106,6 +106,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
 
     /* Payment and related routes */
     Route::post('PatientsDebt', [FinancialController::class, 'PatientsDebt']);
+    Route::post('fetchPayments', [FinancialController::class, 'fetchPayments']);
 
     Route::delete('deletePaymentDetail/{id}', [OperationController::class, 'deletePaymentDetail']);
 

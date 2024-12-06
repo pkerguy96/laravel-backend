@@ -21,6 +21,7 @@ return new class extends Migration
             $table->date('operation_date');
             $table->decimal('total_price', 10, 2); // Replacing 'price' with 'total_price'
             $table->decimal('amount_paid', 10, 2); // Adding 'amount_paid'
+            $table->decimal('fee', 10, 2)->nullable(); // Adding 'amount_paid'
             $table->timestamps();
 
             // Foreign keys

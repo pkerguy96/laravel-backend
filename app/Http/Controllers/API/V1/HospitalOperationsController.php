@@ -68,6 +68,7 @@ class HospitalOperationsController extends Controller
                 'operation_date' => 'required|date',
                 'total_price' => 'required|numeric|min:0',
                 'amount_paid' => 'required|numeric|min:0',
+                'fee' => 'nullable|numeric|min:0',
             ]);
 
             // Check if the amount paid equals the total price
@@ -92,6 +93,7 @@ class HospitalOperationsController extends Controller
                     'operation_date' => $validated['operation_date'],
                     'total_price' => $validated['total_price'],
                     'amount_paid' => $validated['amount_paid'],
+                    'fee' => $validated['fee'],
                 ]);
 
                 // Step 3: Create the payment

@@ -16,12 +16,12 @@ class hospitaloperationresource extends JsonResource
     public function toArray(Request $request): array
     {
         $totalPaid = $this->operation->payments->sum('amount_paid');
-
+        $isPaid = (bool) $this->operation->is_paid;
         return [
             'id' => $this->id,
             'operation_id' => $this->operation->id,
             'hospital' => $this->hospital->name,
-            /*   'patient_name' => $this->patient->nom . ' ' . $this->patient->prenom, */
+            'patient_name' => $this->patient->nom . ' ' . $this->patient->prenom,
             'operation_type' => $this->operation_type,
             'operation_date' => $this->operation_date
                 ? Carbon::parse($this->operation_date)->format('Y-m-d')
@@ -30,6 +30,9 @@ class hospitaloperationresource extends JsonResource
             'amount_paid'
             => $totalPaid,
             'description' => $this->description,
+            'isPaid' => $isPaid,
+            'fee' => $this->fee,
+
 
 
         ];

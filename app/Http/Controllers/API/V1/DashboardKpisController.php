@@ -391,7 +391,7 @@ class DashboardKpisController extends Controller
         $Operations = Operation::with('patient', 'operationdetails', 'payments')->where('is_paid', 0)->whereBetween('created_at', [Carbon::parse($request->date)->startOfDay(),  Carbon::parse($request->date2)->endOfDay()])->get();
         return   SearchOperationDebtResource::collection($Operations);
     } */
-    public function PatientsDebt(Request $request)
+    /* public function PatientsDebt(Request $request)
     {
         Log::info('Request data:', $request->all());
 
@@ -460,5 +460,56 @@ class DashboardKpisController extends Controller
 
         // Return the operations wrapped in a resource collection
         return SearchOperationDebtResource::collection($Operations);
+    } */
+
+    public function PatientsDebt(Request $request)
+    {
+        Log::info('Request data:', $request->all());
+
+        $startDate = Carbon::parse($request->date)->startOfDay();
+        $endDate = Carbon::parse($request->date2)->endOfDay();
+
+        Log::info('Start Date:', [$startDate]);
+        Log::info('End Date:', [$endDate]);
+
+        $hospitals = $request->hospitals;
+
+        if ($hospitals === "tout") {
+            Log::info('Fetching all payments within date range...');
+
+            // Fetch all payments within the date range for all operations
+            $payments = Payment::with(['operation.patient', 'operation.operationdetails'])
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->get();
+
+            Log::info('Fetched All Payments:', $payments->toArray());
+        } elseif (is_array($hospitals) && count($hospitals) > 0) {
+            Log::info('Fetching payments via outsourceOperation for specific hospital IDs:', $hospitals);
+
+            // Fetch payments via outsourceOperation for specific hospitals
+            $payments = Payment::with([
+                'operation.patient',
+                'operation.operationdetails',
+                'operation.externalOperations',
+            ])
+                ->whereHas('operation.externalOperations', function ($query) use ($hospitals) {
+                    $query->whereIn('hospital_id', $hospitals);
+                })
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->get();
+
+            Log::info('Fetched Payments via outsourceOperation:', $payments->toArray());
+        } else {
+            Log::info('No valid hospital filter provided.');
+
+            // Fetch all payments not linked to outsourceOperation
+            $payments = Payment::with(['operation.patient', 'operation.operationdetails'])
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->whereDoesntHave('operation.externalOperations')
+                ->get();
+        }
+
+        // Transform the payments data into the appropriate resource collection
+        return SearchOperationDebtResource::collection($payments);
     }
 }

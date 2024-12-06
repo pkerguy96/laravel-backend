@@ -238,13 +238,12 @@ class XrayController extends Controller
                 if ($product) {
                     if ($product->qte < $quantity) {
                         return response()->json([
-                            'error' => "Not enough stock of '{$product->product_name}'. Available: {$product->min_stock}, Requested: {$quantity}."
+                            'error' => "Stock insuffisant pour '{$product->product_name}'. Disponible : {$product->min_stock}, Demandé : {$quantity}."
                         ], 400);
                     }
                     // Deduct stock
                     $product->qte -= $quantity;
                     $product->save();
-
                     //consomables
                     ProductOperationConsumables::create([
                         'operation_id' => $operation->id,
@@ -252,7 +251,8 @@ class XrayController extends Controller
                         'quantity' => $quantity,
                     ]);
 
-                    if ($product->qte >= $product->min_stock) {
+                    if ($product->qte < $product->min_stock) {
+
                         $users = User::all();
                         foreach ($users as $user) {
                             Notification::create([
@@ -337,7 +337,7 @@ class XrayController extends Controller
             if ($product) {
                 if ($product->qte < $quantity) {
                     return response()->json([
-                        'error' => "Not enough stock of '{$product->product_name}'. Available: {$product->min_stock}, Requested: {$quantity}."
+                        'error' => "Stock insuffisant pour '{$product->product_name}'. Disponible : {$product->min_stock}, Demandé : {$quantity}."
                     ], 400);
                 }
                 // Deduct stock
@@ -350,6 +350,20 @@ class XrayController extends Controller
                     'product_id' => $product->id,
                     'quantity' => $quantity,
                 ]);
+                if ($product->qte < $product->min_stock) {
+
+                    $users = User::all();
+                    foreach ($users as $user) {
+                        Notification::create([
+                            'user_id' => $user->id,
+                            'title' => 'Alerte stock',
+                            'message' => "Le produit '{$product->product_name}' a la quantité minimale",
+                            'is_read' => false,
+                            'type' => 'stock',
+                            "target_id" =>  $product->id
+                        ]);
+                    }
+                }
             } else {
                 return response()->json([
                     'error' => "Consumable '{$product->product_name}' is out of stock."
@@ -357,38 +371,7 @@ class XrayController extends Controller
             }
         }
 
-        /* // Step 4: Handle consumables
-        $consomables = collect($request->input('consomables'));
-        foreach ($consomables as $consomable) {
-            $productName = $consomable['consomable'];
-            $quantity = $consomable['qte'];
-            $product = Product::where('product_name', $productName)->first();
-            if ($product) {
-                if ($product->min_stock < $consomable['qte']) {
-                    return response()->json([
-                        'error' => "Not enough stock of '{$productName}'. Available: {$product->min_stock}, Requested: {$consomable['qte']}."
-                    ], 400);
-                }
-                // Check stock availability
-                if ($product->min_stock > 0) {
-                    // Deduct stock
-                    $product->min_stock -= $quantity;
-                    $product->save();
-                    //consomables
-                    ProductOperationConsumables::create([
-                        'operation_id' => $operation->id,
-                        'product_id' => $product->id,
-                        'quantity' => $quantity,
-                    ]);
-                } else {
-                    return response()->json([
-                        'error' => "Consumable '{$productName}' is out of stock."
-                    ], 400);
-                }
-            }
-        } */
 
-        // Save the updated operation after adding all costs
         $operation->save();
         $waiting =   WaitingRoom::where('patient_id', $request->patient_id)->first();
         if ($waiting) {
