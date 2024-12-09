@@ -30,13 +30,16 @@ class OperationController extends Controller
         $perPage = $request->get('per_page', 20);
 
         // Fetch operations with relationships and apply search if necessary
-        $operationsQuery = Operation::with([
-            'patient' => function ($query) {
-                $query->withTrashed(); // Include soft-deleted patients
-            },
-            'payments',
-            'xray',
-        ])->orderBy('id', 'desc');
+        $operationsQuery = Operation::where('outsource', '<>', 1)
+            ->with([
+                'patient' => function ($query) {
+                    $query->withTrashed(); // Include soft-deleted patients
+                },
+                'payments',
+                'xray',
+            ])
+            ->orderBy('id', 'desc');
+
 
         if (!empty($searchQuery)) {
             // Add search conditions for operations or related models
@@ -67,7 +70,7 @@ class OperationController extends Controller
             'payments',
             'externalOperations',
             'patient' => function ($query) {
-                $query->withTrashed()->select('id', 'nom', 'prenom'); // Select only id, nom, and prenom
+                $query->withTrashed()->select('id', 'nom', 'prenom');
             },
         ])->where('id', $operationId)->first();
 
@@ -129,7 +132,7 @@ class OperationController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    /*   public function update(Request $request, string $id)
     {
 
         try {
@@ -139,7 +142,7 @@ class OperationController extends Controller
             if ($amountPaid < 0) {
                 return response()->json(['error' => 'Le montant payé ne peut pas être un nombre négatif.'], 400);
             }
-            if ($operation) {
+            if ($operation) { 
                 $sumAmountPaid = (float)Payment::where('operation_id', $id)->sum('amount_paid');
                 $totalCost = (float)$operation->total_cost;
 
@@ -175,7 +178,98 @@ class OperationController extends Controller
 
             return response()->json(['message' => $e->getMessage()], 500);
         }
+    } */
+    public function update(Request $request, string $id)
+    {
+        try {
+            Log::info('Starting payment update process', ['operation_id' => $id]);
+
+            // Load operation with external operations relationship
+            $operation = Operation::with('externalOperations')->findOrFail($id);
+            Log::info('Operation fetched', ['operation' => $operation]);
+
+            $amountPaid = (float) $request->amount_paid;
+            Log::info('Amount paid received', ['amount_paid' => $amountPaid]);
+
+            if ($amountPaid < 0) {
+                Log::warning('Negative amount paid', ['amount_paid' => $amountPaid]);
+                return response()->json(['error' => 'Le montant payé ne peut pas être un nombre négatif.'], 400);
+            }
+
+            // Determine the base amount for calculations
+            $isOutsource = $operation->outsource;
+            $baseAmount = $isOutsource
+                ? $operation->externalOperations->sum(function ($externalOperation) {
+                    return (float) $externalOperation['fee']; // Explicitly cast fee to float
+                })
+                : (float) $operation->total_cost;
+
+            Log::info('Base amount calculated', ['base_amount' => $baseAmount]);
+
+            $sumAmountPaid = (float) Payment::where('operation_id', $id)->sum('amount_paid');
+            Log::info('Sum of amount paid for operation', ['sum_amount_paid' => $sumAmountPaid]);
+
+            if (!isset($amountPaid) || empty($amountPaid)) {
+                Log::warning('Amount paid is missing or empty');
+                return response()->json(['error' => 'Le montant payé est requis'], 400);
+            }
+
+            if ($amountPaid > $baseAmount) {
+                Log::error('Amount paid exceeds base amount', [
+                    'amount_paid' => $amountPaid,
+                    'base_amount' => $baseAmount
+                ]);
+                return response()->json(['error' => "Le montant payé dépasse le coût total."], 400);
+            } elseif ($sumAmountPaid + $amountPaid > $baseAmount) {
+                Log::error('Total paid exceeds base amount', [
+                    'sum_amount_paid' => $sumAmountPaid,
+                    'amount_paid' => $amountPaid,
+                    'base_amount' => $baseAmount
+                ]);
+                return response()->json(['error' => "Le montant total payé dépasse le coût total."], 400);
+            } elseif ($sumAmountPaid + $amountPaid <= $baseAmount) {
+                Log::info('Payment is valid. Proceeding to create payment.', [
+                    'sum_amount_paid' => $sumAmountPaid,
+                    'amount_paid' => $amountPaid,
+                    'base_amount' => $baseAmount
+                ]);
+
+                // Create the payment
+                $payment = Payment::create([
+                    'operation_id' => $operation->id,
+                    'total_cost' => $baseAmount, // Use the calculated base amount
+                    'amount_paid' => $amountPaid,
+                    'patient_id' => $operation->patient_id
+                ]);
+
+                // Update operation payment status
+                $isFullyPaid = $sumAmountPaid + $amountPaid === $baseAmount;
+                Log::info('Operation payment status updated', [
+                    'is_fully_paid' => $isFullyPaid
+                ]);
+
+                $operation->update(['is_paid' => $isFullyPaid ? 1 : 0]);
+
+                Log::info('Payment created successfully', [
+                    'payment' => $payment
+                ]);
+
+                return response()->json([
+                    'message' => "Paiement ajouté avec succès.",
+                    'data' => new PayementResource($payment)
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error during payment update', [
+                'error_message' => $e->getMessage(),
+                'stack_trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
+
+
 
     /**
      * Remove the specified resource from storage.

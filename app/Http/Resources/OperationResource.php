@@ -16,6 +16,7 @@ class OperationResource extends JsonResource
     {
         /*    $this->externalOperations->patient = $this->patient; */
         return [
+            'outsource' => $this->outsource,
             'patient_id' =>  $this->patient_id ?? null,
             'patient_name' =>  $this->patient ? ($this->patient->nom . ' ' . $this->patient->prenom) : 'No patient',
 

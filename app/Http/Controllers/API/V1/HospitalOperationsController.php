@@ -80,7 +80,8 @@ class HospitalOperationsController extends Controller
                     'patient_id' => $validated['patient_id'],
                     'total_cost' => $validated['total_price'],
                     'is_paid' => $isPaid,
-                    'note' => $validated['description'], // Description is optional, can be null
+                    'outsource' => 1,
+                    'note' => $validated['description'],
                 ]);
 
                 // Step 2: Create the outsource operation
@@ -96,13 +97,14 @@ class HospitalOperationsController extends Controller
                     'fee' => $validated['fee'],
                 ]);
 
-                // Step 3: Create the payment
-                Payment::create([
-                    'patient_id' => $validated['patient_id'],
-                    'operation_id' => $operation->id,
-                    'total_cost' => $validated['total_price'],
-                    'amount_paid' => $validated['amount_paid'],
-                ]);
+                $validated['amount_paid'] > 0
+                    ? Payment::create([
+                        'patient_id' => $validated['patient_id'],
+                        'operation_id' => $operation->id,
+                        'total_cost' => $validated['total_price'],
+                        'amount_paid' => $validated['amount_paid'],
+                    ])
+                    : null;
 
                 return $operation;
             });
